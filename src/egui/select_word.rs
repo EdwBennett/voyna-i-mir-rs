@@ -94,10 +94,8 @@ impl eframe::App for SentenceApp {
             self.selected = Self::next_word_index(&self.tokens, self.selected);
         }
 
-        if space {
-            if let Some(index) = self.selected {
-                Self::toggle_word(&mut self.expanded, index);
-            }
+        if space && let Some(index) = self.selected {
+            Self::toggle_word(&mut self.expanded, index);
         }
 
         egui::CentralPanel::default().show(ui, |ui| {
