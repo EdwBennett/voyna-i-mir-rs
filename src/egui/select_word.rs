@@ -4,19 +4,6 @@ use eframe::egui;
 
 use crate::excerpts::sentences::{Sentence, WordToken};
 
-/// Where a clicked word's gloss is shown.
-#[allow(dead_code)]
-enum GlossLayout {
-    /// The most recently clicked word's gloss is shown below the sentence.
-    Below,
-    /// Each clicked word's gloss is shown inline, right after the word;
-    /// clicking the word again hides it. Several can be open at once.
-    Inline,
-}
-
-/// Change this to try a different layout.
-const LAYOUT: GlossLayout = GlossLayout::Inline;
-
 pub fn run(sentence: Sentence) -> eframe::Result<()> {
     let options = eframe::NativeOptions {
         viewport: egui::ViewportBuilder::default()
@@ -53,16 +40,8 @@ impl SentenceApp {
     /// Takes `expanded` rather than `&mut self` so callers can hold a
     /// borrow of `self.tokens` (from iterating it) at the same time.
     fn toggle_word(expanded: &mut HashSet<usize>, index: usize) {
-        match LAYOUT {
-            GlossLayout::Below => {
-                expanded.clear();
-                expanded.insert(index);
-            }
-            GlossLayout::Inline => {
-                if !expanded.remove(&index) {
-                    expanded.insert(index);
-                }
-            }
+        if !expanded.remove(&index) {
+            expanded.insert(index);
         }
     }
 
@@ -99,7 +78,7 @@ impl eframe::App for SentenceApp {
         }
 
         egui::CentralPanel::default().show(ui, |ui| {
-            ui.heading("Click a word");
+            ui.heading("Click a word (or right-arrow, space)");
 
             ui.add_space(12.0);
 
@@ -132,7 +111,7 @@ impl eframe::App for SentenceApp {
                                 Self::toggle_word(&mut self.expanded, index);
                             }
 
-                            if matches!(LAYOUT, GlossLayout::Inline) && self.expanded.contains(&index) {
+                            if self.expanded.contains(&index) {
                                 ui.add_space(6.0);
                                 ui.label(egui::RichText::new(format!("({roman}: {en})")).size(20.0).italics());
                             }
@@ -145,25 +124,6 @@ impl eframe::App for SentenceApp {
                     first = false;
                 }
             });
-
-            if matches!(LAYOUT, GlossLayout::Below) {
-                ui.add_space(20.0);
-
-                if let Some((_, WordToken::Word { ru, roman, en })) = self
-                    .expanded
-                    .iter()
-                    .next()
-                    .map(|&index| (index, &self.tokens[index]))
-                {
-                    ui.horizontal(|ui| {
-                        ui.spacing_mut().item_spacing.x = 0.0;
-                        ui.label(egui::RichText::new(ru).size(20.0));
-                        ui.add_space(6.0);
-                        ui.label(egui::RichText::new(roman).size(20.0).italics());
-                        ui.label(egui::RichText::new(format!(": {en}")).size(20.0));
-                    });
-                }
-            }
         });
     }
 }
