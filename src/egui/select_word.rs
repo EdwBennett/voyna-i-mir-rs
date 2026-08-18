@@ -114,7 +114,7 @@ impl eframe::App for SentenceApp {
 
                 for (index, token) in self.tokens.iter().enumerate() {
                     match token {
-                        WordToken::Word { ru, ipa, en } => {
+                        WordToken::Word { ru, roman, en } => {
                             if !first {
                                 ui.add_space(6.0);
                             }
@@ -136,7 +136,7 @@ impl eframe::App for SentenceApp {
 
                             if matches!(LAYOUT, GlossLayout::Inline) && self.expanded.contains(&index) {
                                 ui.add_space(6.0);
-                                ui.label(egui::RichText::new(format!("({ipa}: {en})")).size(20.0).italics());
+                                ui.label(egui::RichText::new(format!("({roman}: {en})")).size(20.0).italics());
                             }
                         }
                         WordToken::Punct(text) => {
@@ -151,7 +151,7 @@ impl eframe::App for SentenceApp {
             if matches!(LAYOUT, GlossLayout::Below) {
                 ui.add_space(20.0);
 
-                if let Some((_, WordToken::Word { ru, ipa, en })) = self
+                if let Some((_, WordToken::Word { ru, roman, en })) = self
                     .expanded
                     .iter()
                     .next()
@@ -161,7 +161,7 @@ impl eframe::App for SentenceApp {
                         ui.spacing_mut().item_spacing.x = 0.0;
                         ui.label(egui::RichText::new(ru).size(20.0));
                         ui.add_space(6.0);
-                        ui.label(egui::RichText::new(ipa).size(20.0).italics());
+                        ui.label(egui::RichText::new(roman).size(20.0).italics());
                         ui.label(egui::RichText::new(format!(": {en}")).size(20.0));
                     });
                 }

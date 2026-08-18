@@ -6,7 +6,7 @@ const SENTENCES_YAML: &str = include_str!("sentences.yaml");
 pub struct Sentence {
     pub id: u32,
     pub ru: String,
-    pub ipa: String,
+    pub roman: String,
     pub en: String,
     pub words: String,
 }
@@ -19,17 +19,17 @@ pub fn run(id: u32) -> Option<Sentence> {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum WordToken {
-    Word { ru: String, ipa: String, en: String },
+    Word { ru: String, roman: String, en: String },
     Punct(String),
 }
 
 impl Sentence {
     /// Parses `words` (e.g. "Так (thus / so) говорила (spoke / said) ...")
     /// into a sequence of glossed words and the punctuation between them, in
-    /// the order they appear. Each word's romanization is taken from `ipa`,
-    /// whose words appear in the same order as `words`.
+    /// the order they appear. Each word's romanization is taken from
+    /// `roman`, whose words appear in the same order as `words`.
     pub fn tokens(&self) -> Vec<WordToken> {
-        let mut romanized_words = Self::split_into_words(&self.ipa).into_iter();
+        let mut romanized_words = Self::split_into_words(&self.roman).into_iter();
 
         let mut tokens = Vec::new();
         let mut rest = self.words.as_str();
@@ -55,7 +55,7 @@ impl Sentence {
             if !word.is_empty() {
                 tokens.push(WordToken::Word {
                     ru: word.to_string(),
-                    ipa: romanized_words.next().unwrap_or_default(),
+                    roman: romanized_words.next().unwrap_or_default(),
                     en: gloss.to_string(),
                 });
             }
@@ -107,7 +107,7 @@ mod tests {
             tokens[0],
             WordToken::Word {
                 ru: "Так".to_string(),
-                ipa: "Tak".to_string(),
+                roman: "Tak".to_string(),
                 en: "thus / so".to_string()
             }
         );
@@ -115,7 +115,7 @@ mod tests {
             tokens[1],
             WordToken::Word {
                 ru: "говорила".to_string(),
-                ipa: "govorila".to_string(),
+                roman: "govorila".to_string(),
                 en: "spoke / said".to_string()
             }
         );
@@ -130,7 +130,7 @@ mod tests {
             tokens[sherer + 2],
             WordToken::Word {
                 ru: "фрейлина".to_string(),
-                ipa: "freylina".to_string(),
+                roman: "freylina".to_string(),
                 en: "maid of honor".to_string()
             }
         );
