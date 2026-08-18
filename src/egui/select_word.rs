@@ -36,6 +36,9 @@ struct SentenceApp {
     tokens: Vec<WordToken>,
     /// Indices into `tokens` whose gloss is currently shown.
     expanded: HashSet<usize>,
+    /// Index into `tokens` of the word currently selected via keyboard
+    /// (or last clicked).
+    selected: Option<usize>,
 }
 
 impl SentenceApp {
@@ -43,6 +46,7 @@ impl SentenceApp {
         Self {
             tokens: sentence.tokens(),
             expanded: HashSet::new(),
+            selected: None,
         }
     }
 
@@ -61,10 +65,41 @@ impl SentenceApp {
             }
         }
     }
+
+    /// Index of the next `Word` token after `after` (or the first `Word`
+    /// token if `after` is `None`), wrapping around the end of the sentence.
+    fn next_word_index(tokens: &[WordToken], after: Option<usize>) -> Option<usize> {
+        let len = tokens.len();
+        if len == 0 {
+            return None;
+        }
+
+        let start = after.map_or(0, |i| i + 1);
+        (0..len)
+            .map(|offset| (start + offset) % len)
+            .find(|&i| matches!(tokens[i], WordToken::Word { .. }))
+    }
 }
 
 impl eframe::App for SentenceApp {
     fn ui(&mut self, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
+        let (arrow_right, space) = ui.input(|i| {
+            (
+                i.key_pressed(egui::Key::ArrowRight),
+                i.key_pressed(egui::Key::Space),
+            )
+        });
+
+        if arrow_right {
+            self.selected = Self::next_word_index(&self.tokens, self.selected);
+        }
+
+        if space {
+            if let Some(index) = self.selected {
+                Self::toggle_word(&mut self.expanded, index);
+            }
+        }
+
         egui::CentralPanel::default().show(ui, |ui| {
             ui.heading("Click a word");
 
@@ -84,12 +119,18 @@ impl eframe::App for SentenceApp {
                                 ui.add_space(6.0);
                             }
 
-                            let response = ui.add(
-                                egui::Label::new(egui::RichText::new(ru).size(20.0).underline())
-                                    .sense(egui::Sense::click()),
-                            );
+                            let is_selected = self.selected == Some(index);
+
+                            let mut text = egui::RichText::new(ru).size(20.0).underline();
+                            if is_selected {
+                                text = text.background_color(ui.visuals().selection.bg_fill);
+                            }
+
+                            let response =
+                                ui.add(egui::Label::new(text).sense(egui::Sense::click()));
 
                             if response.clicked() {
+                                self.selected = Some(index);
                                 Self::toggle_word(&mut self.expanded, index);
                             }
 
