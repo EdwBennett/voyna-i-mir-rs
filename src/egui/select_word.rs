@@ -7,6 +7,7 @@ use crate::excerpts::sentences::{Sentence, WordToken};
 const TEXT_SIZE: f32 = 20.0;
 
 pub fn run(sentence: Sentence) -> eframe::Result<()> {
+    let title = sentence.title();
     let options = eframe::NativeOptions {
         viewport: egui::ViewportBuilder::default()
             .with_inner_size([520.0, 220.0])
@@ -15,7 +16,7 @@ pub fn run(sentence: Sentence) -> eframe::Result<()> {
     };
 
     eframe::run_native(
-        "Clickable sentence",
+        &title,
         options,
         Box::new(|_cc| Ok(Box::new(SentenceApp::new(sentence)))),
     )

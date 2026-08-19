@@ -1,6 +1,8 @@
 use serde::{Deserialize, Serialize};
 
-const SENTENCES_YAML: &str = include_str!("Volume-1-Part-1.yaml");
+const SENTENCES_FILE: &str = "Volume_1_Part_1.yaml";
+const SENTENCES_YAML: &str = include_str!("Volume_1_Part_1.yaml");
+const VOLUME_PARTS_YAML: &str = include_str!("voyna-i-mir.yaml");
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Sentence {
@@ -12,10 +14,32 @@ pub struct Sentence {
     pub words: String,
 }
 
+#[derive(Debug, Deserialize, Serialize)]
+struct VolumePart {
+    id: u32,
+    vol_part: String,
+    file: String,
+}
+
 pub fn run(id: u32) -> Option<Sentence> {
     let sentences: Vec<Sentence> =
-        serde_yaml_ng::from_str(SENTENCES_YAML).expect("failed to parse Volume-1-Part-1.yaml");
+        serde_yaml_ng::from_str(SENTENCES_YAML).expect("failed to parse Volume_1_Part_1.yaml");
     sentences.into_iter().find(|sentence| sentence.id == id)
+}
+
+impl Sentence {
+    /// Window title, e.g. "ТОМ ПЕРВЫЙ ЧАСТЬ ПЕРВАЯ IV".
+    pub fn title(&self) -> String {
+        let volume_parts: Vec<VolumePart> = serde_yaml_ng::from_str(VOLUME_PARTS_YAML)
+            .expect("failed to parse voyna-i-mir.yaml");
+        let vol_part = volume_parts
+            .into_iter()
+            .find(|part| part.file == SENTENCES_FILE)
+            .expect("voyna-i-mir.yaml should have an entry for Volume_1_Part_1.yaml")
+            .vol_part;
+
+        format!("{vol_part} {}", self.chapter)
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -89,9 +113,16 @@ mod tests {
 
     #[test]
     fn run_finds_sentence_by_id() {
-        let sentence = run(1).expect("id 1 should exist in Volume-1-Part-1.yaml");
+        let sentence = run(1).expect("id 1 should exist in Volume_1_Part_1.yaml");
         assert_eq!(sentence.id, 1);
         assert!(sentence.ru.starts_with("Так говорила"));
+    }
+
+    #[test]
+    fn title_combines_volume_part_and_chapter() {
+        let sentence = run(4).expect("id 4 should exist in Volume_1_Part_1.yaml");
+        assert_eq!(sentence.chapter, "IV");
+        assert_eq!(sentence.title(), "ТОМ ПЕРВЫЙ ЧАСТЬ ПЕРВАЯ IV");
     }
 
     #[test]
@@ -101,7 +132,7 @@ mod tests {
 
     #[test]
     fn tokens_parses_words_and_punctuation_in_order() {
-        let sentence = run(1).expect("id 1 should exist in Volume-1-Part-1.yaml");
+        let sentence = run(1).expect("id 1 should exist in Volume_1_Part_1.yaml");
         let tokens = sentence.tokens();
 
         assert_eq!(
