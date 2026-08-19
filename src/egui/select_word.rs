@@ -4,6 +4,8 @@ use eframe::egui;
 
 use crate::excerpts::sentences::{Sentence, WordToken};
 
+const TEXT_SIZE: f32 = 20.0;
+
 pub fn run(sentence: Sentence) -> eframe::Result<()> {
     let options = eframe::NativeOptions {
         viewport: egui::ViewportBuilder::default()
@@ -98,7 +100,7 @@ impl eframe::App for SentenceApp {
 
                             let is_selected = self.selected == Some(index);
 
-                            let mut text = egui::RichText::new(ru).size(20.0).underline();
+                            let mut text = egui::RichText::new(ru).size(TEXT_SIZE).underline();
                             if is_selected {
                                 text = text.background_color(ui.visuals().selection.bg_fill);
                             }
@@ -113,11 +115,15 @@ impl eframe::App for SentenceApp {
 
                             if self.expanded.contains(&index) {
                                 ui.add_space(6.0);
-                                ui.label(egui::RichText::new(format!("({roman}: {en})")).size(20.0).italics());
+                                ui.label(
+                                    egui::RichText::new(format!("({roman}: {en})"))
+                                        .size(TEXT_SIZE)
+                                        .italics(),
+                                );
                             }
                         }
                         WordToken::Punct(text) => {
-                            ui.label(egui::RichText::new(text).size(20.0));
+                            ui.label(egui::RichText::new(text).size(TEXT_SIZE));
                         }
                     }
 
