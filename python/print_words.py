@@ -9,6 +9,5 @@ with open(filename, "r", encoding="utf-8") as f:
 for item in items:
     print()
     print(item["chapter"])
-    print()
     print(item["words"])
      
