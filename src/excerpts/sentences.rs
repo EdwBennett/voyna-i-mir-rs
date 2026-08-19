@@ -1,9 +1,10 @@
 use serde::{Deserialize, Serialize};
 
-const SENTENCES_YAML: &str = include_str!("sentences.yaml");
+const SENTENCES_YAML: &str = include_str!("Volume-1-Part-1.yaml");
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Sentence {
+    pub chapter: String,
     pub id: u32,
     pub ru: String,
     pub roman: String,
@@ -13,7 +14,7 @@ pub struct Sentence {
 
 pub fn run(id: u32) -> Option<Sentence> {
     let sentences: Vec<Sentence> =
-        serde_yaml_ng::from_str(SENTENCES_YAML).expect("failed to parse sentences.yaml");
+        serde_yaml_ng::from_str(SENTENCES_YAML).expect("failed to parse Volume-1-Part-1.yaml");
     sentences.into_iter().find(|sentence| sentence.id == id)
 }
 
@@ -88,7 +89,7 @@ mod tests {
 
     #[test]
     fn run_finds_sentence_by_id() {
-        let sentence = run(1).expect("id 1 should exist in sentences.yaml");
+        let sentence = run(1).expect("id 1 should exist in Volume-1-Part-1.yaml");
         assert_eq!(sentence.id, 1);
         assert!(sentence.ru.starts_with("Так говорила"));
     }
@@ -100,7 +101,7 @@ mod tests {
 
     #[test]
     fn tokens_parses_words_and_punctuation_in_order() {
-        let sentence = run(1).expect("id 1 should exist in sentences.yaml");
+        let sentence = run(1).expect("id 1 should exist in Volume-1-Part-1.yaml");
         let tokens = sentence.tokens();
 
         assert_eq!(
