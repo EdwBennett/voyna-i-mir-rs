@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 import yaml
 
 filename = "Volume_1_Part_1.yaml"
