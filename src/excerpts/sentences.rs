@@ -30,8 +30,8 @@ pub fn run(id: u32) -> Option<Sentence> {
 impl Sentence {
     /// Window title, e.g. "ТОМ ПЕРВЫЙ ЧАСТЬ ПЕРВАЯ IV".
     pub fn title(&self) -> String {
-        let volume_parts: Vec<VolumePart> = serde_yaml_ng::from_str(VOLUME_PARTS_YAML)
-            .expect("failed to parse voyna-i-mir.yaml");
+        let volume_parts: Vec<VolumePart> =
+            serde_yaml_ng::from_str(VOLUME_PARTS_YAML).expect("failed to parse voyna-i-mir.yaml");
         let vol_part = volume_parts
             .into_iter()
             .find(|part| part.file == SENTENCES_FILE)
@@ -44,7 +44,11 @@ impl Sentence {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum WordToken {
-    Word { ru: String, roman: String, en: String },
+    Word {
+        ru: String,
+        roman: String,
+        en: String,
+    },
     Punct(String),
 }
 

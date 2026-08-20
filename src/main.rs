@@ -38,7 +38,8 @@ fn main() -> ExitCode {
 fn print_sentence(id: u32) -> ExitCode {
     match excerpts::sentences::run(id) {
         Some(sentence) => {
-            let json = serde_json::to_string_pretty(&sentence).expect("failed to serialize sentence");
+            let json =
+                serde_json::to_string_pretty(&sentence).expect("failed to serialize sentence");
             println!("{json}");
             ExitCode::SUCCESS
         }
