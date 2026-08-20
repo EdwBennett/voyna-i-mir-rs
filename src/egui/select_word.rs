@@ -6,6 +6,7 @@ use crate::excerpts::sentences::{Sentence, WordToken};
 
 const TEXT_SIZE: f32 = 20.0;
 
+#[cfg(not(target_arch = "wasm32"))]
 pub fn run(sentence: Sentence) -> eframe::Result<()> {
     let title = sentence.title();
     let options = eframe::NativeOptions {
@@ -22,7 +23,7 @@ pub fn run(sentence: Sentence) -> eframe::Result<()> {
     )
 }
 
-struct SentenceApp {
+pub struct SentenceApp {
     tokens: Vec<WordToken>,
     /// Indices into `tokens` whose gloss is currently shown.
     expanded: HashSet<usize>,
@@ -32,7 +33,7 @@ struct SentenceApp {
 }
 
 impl SentenceApp {
-    fn new(sentence: Sentence) -> Self {
+    pub fn new(sentence: Sentence) -> Self {
         Self {
             tokens: sentence.tokens(),
             expanded: HashSet::new(),
