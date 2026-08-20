@@ -61,14 +61,30 @@ impl SentenceApp {
             .map(|offset| (start + offset) % len)
             .find(|&i| matches!(tokens[i], WordToken::Word { .. }))
     }
+
+    /// Index of the previous `Word` token before `before` (or the last `Word`
+    /// token if `before` is `None`), wrapping around the start of the sentence.
+    fn prev_word_index(tokens: &[WordToken], before: Option<usize>) -> Option<usize> {
+        let len = tokens.len();
+        if len == 0 {
+            return None;
+        }
+
+        let start = before.map_or(len - 1, |i| (i + len - 1) % len);
+        (0..len)
+            .map(|offset| (start + len - offset) % len)
+            .find(|&i| matches!(tokens[i], WordToken::Word { .. }))
+    }
 }
 
 impl eframe::App for SentenceApp {
     fn ui(&mut self, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
-        let (arrow_right, space) = ui.input(|i| {
+        let (arrow_right, arrow_left, space, ctrl_w) = ui.input(|i| {
             (
                 i.key_pressed(egui::Key::ArrowRight),
+                i.key_pressed(egui::Key::ArrowLeft),
                 i.key_pressed(egui::Key::Space),
+                i.modifiers.ctrl && i.key_pressed(egui::Key::W),
             )
         });
 
@@ -76,12 +92,20 @@ impl eframe::App for SentenceApp {
             self.selected = Self::next_word_index(&self.tokens, self.selected);
         }
 
+        if arrow_left {
+            self.selected = Self::prev_word_index(&self.tokens, self.selected);
+        }
+
+        if ctrl_w {
+            ui.ctx().send_viewport_cmd(egui::ViewportCommand::Close);
+        }
+
         if space && let Some(index) = self.selected {
             Self::toggle_word(&mut self.expanded, index);
         }
 
         egui::CentralPanel::default().show(ui, |ui| {
-            ui.heading("Click a word (or right-arrow, space)");
+            ui.heading("Click a word (or left/right-arrow, space)");
 
             ui.add_space(12.0);
 
