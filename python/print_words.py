@@ -12,4 +12,3 @@ with open(output_filename, "w", encoding="utf-8") as out:
         print(file=out)
         print(item["chapter"], file=out)
         print(item["words"], file=out)
-        
