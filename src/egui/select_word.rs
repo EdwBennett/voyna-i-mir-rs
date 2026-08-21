@@ -4,14 +4,14 @@ use eframe::egui;
 
 use crate::excerpts::sentences::{Sentence, WordToken};
 
-const TEXT_SIZE: f32 = 20.0;
+const TEXT_SIZE: f32 = 24.0;
 
 #[cfg(not(target_arch = "wasm32"))]
 pub fn run(sentence: Sentence) -> eframe::Result<()> {
     let title = sentence.title();
     let options = eframe::NativeOptions {
         viewport: egui::ViewportBuilder::default()
-            .with_inner_size([520.0, 220.0])
+            .with_inner_size([624.0, 264.0])
             .with_resizable(false),
         ..Default::default()
     };
