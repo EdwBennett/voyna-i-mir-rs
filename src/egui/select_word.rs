@@ -110,51 +110,53 @@ impl eframe::App for SentenceApp {
 
             ui.add_space(12.0);
 
-            // Use a wrapping layout, so a longer sentence flows onto new lines.
-            ui.horizontal_wrapped(|ui| {
-                // No automatic gap: punctuation should hug the word before it,
-                // so spacing before words is added explicitly instead.
-                ui.spacing_mut().item_spacing.x = 0.0;
-                let mut first = true;
+            egui::ScrollArea::vertical().show(ui, |ui| {
+                // Use a wrapping layout, so a longer sentence flows onto new lines.
+                ui.horizontal_wrapped(|ui| {
+                    // No automatic gap: punctuation should hug the word before it,
+                    // so spacing before words is added explicitly instead.
+                    ui.spacing_mut().item_spacing.x = 0.0;
+                    let mut first = true;
 
-                for (index, token) in self.tokens.iter().enumerate() {
-                    match token {
-                        WordToken::Word { ru, roman, en } => {
-                            if !first {
-                                ui.add_space(6.0);
+                    for (index, token) in self.tokens.iter().enumerate() {
+                        match token {
+                            WordToken::Word { ru, roman, en } => {
+                                if !first {
+                                    ui.add_space(6.0);
+                                }
+
+                                let is_selected = self.selected == Some(index);
+
+                                let mut text = egui::RichText::new(ru).size(TEXT_SIZE).underline();
+                                if is_selected {
+                                    text = text.background_color(ui.visuals().selection.bg_fill);
+                                }
+
+                                let response =
+                                    ui.add(egui::Label::new(text).sense(egui::Sense::click()));
+
+                                if response.clicked() {
+                                    self.selected = Some(index);
+                                    Self::toggle_word(&mut self.expanded, index);
+                                }
+
+                                if self.expanded.contains(&index) {
+                                    ui.add_space(6.0);
+                                    ui.label(
+                                        egui::RichText::new(format!("({roman}: {en})"))
+                                            .size(TEXT_SIZE)
+                                            .italics(),
+                                    );
+                                }
                             }
-
-                            let is_selected = self.selected == Some(index);
-
-                            let mut text = egui::RichText::new(ru).size(TEXT_SIZE).underline();
-                            if is_selected {
-                                text = text.background_color(ui.visuals().selection.bg_fill);
-                            }
-
-                            let response =
-                                ui.add(egui::Label::new(text).sense(egui::Sense::click()));
-
-                            if response.clicked() {
-                                self.selected = Some(index);
-                                Self::toggle_word(&mut self.expanded, index);
-                            }
-
-                            if self.expanded.contains(&index) {
-                                ui.add_space(6.0);
-                                ui.label(
-                                    egui::RichText::new(format!("({roman}: {en})"))
-                                        .size(TEXT_SIZE)
-                                        .italics(),
-                                );
+                            WordToken::Punct(text) => {
+                                ui.label(egui::RichText::new(text).size(TEXT_SIZE));
                             }
                         }
-                        WordToken::Punct(text) => {
-                            ui.label(egui::RichText::new(text).size(TEXT_SIZE));
-                        }
+
+                        first = false;
                     }
-
-                    first = false;
-                }
+                });
             });
         });
     }
