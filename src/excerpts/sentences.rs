@@ -111,6 +111,44 @@ impl Sentence {
     }
 }
 
+/// Punctuation marks that end a clause, for [`Sentence::clauses`].
+const CLAUSE_BOUNDARIES: &[char] = &[',', ';', '-', '—', ':'];
+
+/// A run of tokens between two clause boundaries (or the start/end of the
+/// sentence).
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Clause {
+    pub tokens: Vec<WordToken>,
+}
+
+impl Sentence {
+    /// Splits [`Sentence::tokens`] into clauses, breaking after any
+    /// [`WordToken::Punct`] token containing a character from
+    /// [`CLAUSE_BOUNDARIES`]. The boundary punctuation stays attached to the
+    /// clause it ends.
+    pub fn clauses(&self) -> Vec<Clause> {
+        let mut clauses = Vec::new();
+        let mut current = Vec::new();
+
+        for token in self.tokens() {
+            let is_boundary =
+                matches!(&token, WordToken::Punct(p) if p.contains(CLAUSE_BOUNDARIES));
+            current.push(token);
+            if is_boundary {
+                clauses.push(Clause {
+                    tokens: std::mem::take(&mut current),
+                });
+            }
+        }
+
+        if !current.is_empty() {
+            clauses.push(Clause { tokens: current });
+        }
+
+        clauses
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -170,5 +208,34 @@ mod tests {
                 en: "maid of honor".to_string()
             }
         );
+    }
+
+    #[test]
+    fn clauses_break_after_boundary_punctuation() {
+        let sentence = run(1).expect("id 1 should exist in Volume_1_Part_1.yaml");
+        let clauses = sentence.clauses();
+
+        // "Шерер (Scherer)," ends the first clause: its last token is the
+        // comma right after "Шерер".
+        let first_clause_last = clauses[0]
+            .tokens
+            .last()
+            .expect("clause should not be empty");
+        assert_eq!(*first_clause_last, WordToken::Punct(",".to_string()));
+
+        assert!(
+            clauses.len() > 1,
+            "sentence 1 should split into more than one clause"
+        );
+
+        // Every clause but a trailing one ending mid-sentence (no boundary
+        // before it) should end on a boundary-containing Punct token.
+        for clause in &clauses[..clauses.len() - 1] {
+            let last = clause.tokens.last().expect("clause should not be empty");
+            assert!(
+                matches!(last, WordToken::Punct(p) if p.contains(CLAUSE_BOUNDARIES)),
+                "clause should end on a boundary token, got {last:?}"
+            );
+        }
     }
 }
