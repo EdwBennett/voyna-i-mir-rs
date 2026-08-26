@@ -12,4 +12,7 @@ eframe = "0.36.1"
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 log = "0.4"
 wasm-bindgen-futures = "0.4"
-web-sys = { version = "0.3", features = ["Document", "Element", "HtmlCanvasElement", "Location", "UrlSearchParams", "Window"] }
+web-sys = { version = "0.3", features = ["Document", "Element", "HtmlAudioElement", "HtmlCanvasElement", "HtmlMediaElement", "Location", "UrlSearchParams", "Window"] }
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+rodio = "0.22.2"
