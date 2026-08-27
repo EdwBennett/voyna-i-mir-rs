@@ -20,9 +20,11 @@ reveal its romanization and English gloss.
 
 ## Live demo
 
-A static, browser-based version is published via GitHub Pages:
+A static, browser-based version is published via GitHub Pages. The `page`
+query parameter selects which page to show, and `id` selects the sentence:
 
-<https://edwbennett.github.io/voyna-i-mir-rs/index.html?id=1>
+- [Word-by-word gloss page](https://edwbennett.github.io/voyna-i-mir-rs/?page=1&id=1)
+- [Clause audio page](https://edwbennett.github.io/voyna-i-mir-rs/?page=2&id=1)
 
 Change the `id` query parameter to view a different sentence.
 
