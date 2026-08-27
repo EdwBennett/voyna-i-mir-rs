@@ -37,10 +37,11 @@ pub fn run(sentence: Sentence) -> eframe::Result<()> {
     )
 }
 
-/// Clause-level audio page: click a clause to select/highlight it (which
-/// also stops any playback in progress). Space starts looping the selected
-/// clause's mp3 - or the first clause's, if none is selected - until space
-/// is pressed again.
+/// Clause-level audio page: click a clause (or use the left/right arrow
+/// keys, which wrap around the ends of the sentence) to select/highlight
+/// it, which also stops any playback in progress. Space starts looping the
+/// selected clause's mp3 - or the first clause's, if none is selected -
+/// until space is pressed again.
 pub struct Page2App {
     clauses: Vec<Clause>,
     /// Index into `clauses` of the currently selected clause, if any.
@@ -193,18 +194,52 @@ impl Page2App {
         }
         Some(self.selected.unwrap_or(0) + 1)
     }
+
+    /// Index of the clause after `after` (or the first clause if `after` is
+    /// `None`), wrapping around the end of the sentence.
+    fn next_clause_index(len: usize, after: Option<usize>) -> Option<usize> {
+        if len == 0 {
+            return None;
+        }
+        Some(after.map_or(0, |i| (i + 1) % len))
+    }
+
+    /// Index of the clause before `before` (or the last clause if `before`
+    /// is `None`), wrapping around the start of the sentence.
+    fn prev_clause_index(len: usize, before: Option<usize>) -> Option<usize> {
+        if len == 0 {
+            return None;
+        }
+        Some(before.map_or(len - 1, |i| (i + len - 1) % len))
+    }
 }
 
 impl eframe::App for Page2App {
     fn ui(&mut self, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
-        if ui.input(|i| i.key_pressed(egui::Key::Space))
-            && let Some(clause_num) = self.current_clause_num()
-        {
+        let (arrow_right, arrow_left, space) = ui.input(|i| {
+            (
+                i.key_pressed(egui::Key::ArrowRight),
+                i.key_pressed(egui::Key::ArrowLeft),
+                i.key_pressed(egui::Key::Space),
+            )
+        });
+
+        if arrow_right {
+            self.audio.stop();
+            self.selected = Self::next_clause_index(self.clauses.len(), self.selected);
+        }
+
+        if arrow_left {
+            self.audio.stop();
+            self.selected = Self::prev_clause_index(self.clauses.len(), self.selected);
+        }
+
+        if space && let Some(clause_num) = self.current_clause_num() {
             self.audio.toggle(self.sentence_id, clause_num, VOICE);
         }
 
         egui::CentralPanel::default().show(ui, |ui| {
-            ui.heading("Click a clause; space plays it on repeat");
+            ui.heading("Click a clause (or left/right-arrow); space plays it on repeat");
 
             ui.add_space(12.0);
 
@@ -225,6 +260,13 @@ impl eframe::App for Page2App {
                         if response.clicked() {
                             self.audio.stop();
                             self.selected = if is_selected { None } else { Some(index) };
+                        }
+
+                        // Keep the newly-selected clause visible when it was
+                        // reached via keyboard nav rather than a click (which
+                        // is already visible, having just been clicked).
+                        if is_selected && (arrow_right || arrow_left) {
+                            response.scroll_to_me(Some(egui::Align::Center));
                         }
 
                         ui.add_space(6.0);
