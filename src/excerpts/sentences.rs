@@ -121,6 +121,31 @@ pub struct Clause {
     pub tokens: Vec<WordToken>,
 }
 
+impl Clause {
+    /// Renders the clause's tokens as a single line of Russian text,
+    /// punctuation hugging the word before it rather than being
+    /// space-separated.
+    pub fn text(&self) -> String {
+        let mut text = String::new();
+        let mut first = true;
+
+        for token in &self.tokens {
+            match token {
+                WordToken::Word { ru, .. } => {
+                    if !first {
+                        text.push(' ');
+                    }
+                    text.push_str(ru);
+                }
+                WordToken::Punct(punct) => text.push_str(punct),
+            }
+            first = false;
+        }
+
+        text
+    }
+}
+
 impl Sentence {
     /// Splits [`Sentence::tokens`] into clauses, breaking after any
     /// [`WordToken::Punct`] token containing a character from

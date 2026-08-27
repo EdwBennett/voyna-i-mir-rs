@@ -1,5 +1,8 @@
+mod clause_audio;
 mod egui;
 mod excerpts;
+#[cfg(not(target_arch = "wasm32"))]
+mod mp3s;
 
 #[cfg(not(target_arch = "wasm32"))]
 use std::env;
@@ -8,7 +11,9 @@ use std::process::ExitCode;
 
 #[cfg(not(target_arch = "wasm32"))]
 fn usage(program: &str) -> String {
-    format!("Usage: {program} sentence <id> | {program} display <id> | {program} page2 <id>")
+    format!(
+        "Usage: {program} sentence <id> | {program} display <id> | {program} page2 <id> | {program} mp3s <id>"
+    )
 }
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -29,6 +34,7 @@ fn main() -> ExitCode {
         "sentence" => print_sentence(id),
         "display" => display_sentence(id),
         "page2" => display_page2(id),
+        "mp3s" => mp3s::run(id),
         other => {
             eprintln!("Unknown mode: {other}");
             eprintln!("{}", usage(&args[0]));

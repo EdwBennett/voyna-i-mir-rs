@@ -1,17 +1,24 @@
 use eframe::egui;
 
-use crate::excerpts::sentences::{Clause, Sentence, WordToken};
+use crate::clause_audio;
+use crate::excerpts::sentences::{Clause, Sentence};
 
 #[cfg(not(target_arch = "wasm32"))]
 use std::io::Cursor;
+#[cfg(not(target_arch = "wasm32"))]
+use std::path::Path;
 
 #[cfg(not(target_arch = "wasm32"))]
-use rodio::{Decoder, DeviceSinkBuilder, MixerDeviceSink, Player};
+use rodio::{Decoder, DeviceSinkBuilder, MixerDeviceSink, Player, Source, buffer::SamplesBuffer};
 
 #[cfg(target_arch = "wasm32")]
 use web_sys::HtmlAudioElement;
 
 const TEXT_SIZE: f32 = 24.0;
+
+/// Voice clause playback uses. Both `denis` and `irina` mp3s exist per
+/// clause (see `src/mp3s.rs`); irina is the one wired up to the UI.
+const VOICE: &str = "irina";
 
 #[cfg(not(target_arch = "wasm32"))]
 pub fn run(sentence: Sentence) -> eframe::Result<()> {
@@ -30,33 +37,10 @@ pub fn run(sentence: Sentence) -> eframe::Result<()> {
     )
 }
 
-/// Renders a clause's tokens as a single line of text, punctuation hugging
-/// the word before it (matching how `select_word` renders tokens).
-fn clause_text(clause: &Clause) -> String {
-    let mut text = String::new();
-    let mut first = true;
-
-    for token in &clause.tokens {
-        match token {
-            WordToken::Word { ru, .. } => {
-                if !first {
-                    text.push(' ');
-                }
-                text.push_str(ru);
-            }
-            WordToken::Punct(punct) => text.push_str(punct),
-        }
-        first = false;
-    }
-
-    text
-}
-
-/// Clause-level clause-audio page: click a clause to select it. Per-clause
-/// playback (looping each clause's mp3 until clicked again) is not
-/// implemented yet, since those mp3s don't exist - they'll be generated
-/// later via piper-voices. For now, space plays the whole sentence's mp3
-/// once, as a first test of the audio playback infrastructure.
+/// Clause-level audio page: click a clause to select/highlight it (which
+/// also stops any playback in progress). Space starts looping the selected
+/// clause's mp3 - or the first clause's, if none is selected - until space
+/// is pressed again.
 pub struct Page2App {
     clauses: Vec<Clause>,
     /// Index into `clauses` of the currently selected clause, if any.
@@ -68,13 +52,13 @@ pub struct Page2App {
     audio: WebAudio,
 }
 
-/// Native (non-wasm) sentence-audio playback, backed by `rodio`.
+/// Native (non-wasm) clause-audio playback, backed by `rodio`.
 #[cfg(not(target_arch = "wasm32"))]
 struct NativeAudio {
     /// Kept alive for as long as playback should be possible - dropping it
     /// silences any player connected to its mixer.
     device: Option<MixerDeviceSink>,
-    /// Present while a sentence mp3 is playing.
+    /// Present while a clause mp3 is looping.
     player: Option<Player>,
 }
 
@@ -96,23 +80,20 @@ impl NativeAudio {
         }
     }
 
-    /// Clears `player` once its one-shot playback has finished on its own.
-    fn forget_finished(&mut self) {
-        if self.player.as_ref().is_some_and(Player::empty) {
-            self.player = None;
+    /// Stops playback if a clause mp3 is currently looping.
+    fn stop(&mut self) {
+        if let Some(player) = self.player.take() {
+            player.stop();
         }
     }
 
-    fn is_active(&self) -> bool {
-        self.player.is_some()
-    }
-
-    /// Stops playback if a sentence mp3 is currently playing, otherwise
-    /// starts playing `sentence_id`'s mp3 once. No-ops if that mp3 is
-    /// missing or no audio output device is available.
-    fn toggle(&mut self, sentence_id: u32) {
-        if let Some(player) = self.player.take() {
-            player.stop();
+    /// Stops playback if a clause mp3 is currently looping, otherwise
+    /// starts looping `sentence_id`'s `clause_num`-th clause (1-based) in
+    /// `voice` until stopped. No-ops if that mp3 is missing or no audio
+    /// output device is available.
+    fn toggle(&mut self, sentence_id: u32, clause_num: usize, voice: &str) {
+        if self.player.is_some() {
+            self.stop();
             return;
         }
 
@@ -120,66 +101,72 @@ impl NativeAudio {
             return;
         };
 
-        let path = format!(
-            concat!(
-                env!("CARGO_MANIFEST_DIR"),
-                "/src/ru-mp3s/voynaimir_{:03}.mp3"
-            ),
-            sentence_id
+        let path = Path::new(clause_audio::RU_MP3S_DIR).join(
+            clause_audio::clause_mp3_relative_path(sentence_id, clause_num, voice),
         );
         let Ok(bytes) = std::fs::read(&path) else {
             return;
         };
-        let Ok(source) = Decoder::new(Cursor::new(bytes)) else {
+        let Ok(decoder) = Decoder::new(Cursor::new(bytes)) else {
             return;
         };
+        // Decode eagerly into a SamplesBuffer rather than calling
+        // `repeat_infinite()` on the Decoder directly: rodio 0.22.2's mp3
+        // decoder reports `current_span_len() == Some(0)` before its first
+        // sample is pulled, which `Source::buffered()` (which
+        // `repeat_infinite()` relies on internally) treats as "already
+        // exhausted" - producing permanent silence with no error.
+        let channels = decoder.channels();
+        let sample_rate = decoder.sample_rate();
+        let source = SamplesBuffer::new(channels, sample_rate, decoder.collect::<Vec<_>>());
 
         let player = Player::connect_new(device.mixer());
-        player.append(source);
+        player.append(source.repeat_infinite());
         self.player = Some(player);
     }
 }
 
-/// Web (wasm) sentence-audio playback, backed by an `HTMLAudioElement`.
+/// Web (wasm) clause-audio playback, backed by an `HTMLAudioElement`.
 /// `egui`/`eframe` only draw to the canvas, so playback goes through
 /// `web_sys` directly rather than any egui widget.
 #[cfg(target_arch = "wasm32")]
 #[derive(Default)]
 struct WebAudio {
-    /// Present while a sentence mp3 is playing.
+    /// Present while a clause mp3 is looping.
     element: Option<HtmlAudioElement>,
 }
 
 #[cfg(target_arch = "wasm32")]
 impl WebAudio {
-    /// Clears `element` once its one-shot playback has finished on its own.
-    fn forget_finished(&mut self) {
-        if self.element.as_ref().is_some_and(|element| element.ended()) {
-            self.element = None;
-        }
-    }
-
-    fn is_active(&self) -> bool {
-        self.element.is_some()
-    }
-
-    /// Stops playback if a sentence mp3 is currently playing, otherwise
-    /// starts playing `sentence_id`'s mp3 once. No-ops if the element or
-    /// playback can't be created (e.g. the mp3 is missing - trunk's
-    /// `copy-dir` directive in index.html puts `src/ru-mp3s/` at
-    /// `ru-mp3s/` relative to the page, which resolves against the
-    /// `<base data-trunk-public-url>` tag regardless of deploy path).
-    fn toggle(&mut self, sentence_id: u32) {
+    /// Stops playback if a clause mp3 is currently looping.
+    fn stop(&mut self) {
         if let Some(element) = self.element.take() {
             let _ = element.pause();
             element.set_current_time(0.0);
+        }
+    }
+
+    /// Stops playback if a clause mp3 is currently looping, otherwise
+    /// starts looping `sentence_id`'s `clause_num`-th clause (1-based) in
+    /// `voice` until stopped. No-ops if the element or playback can't be
+    /// created (e.g. the mp3 is missing - trunk's `copy-dir` directive in
+    /// index.html puts `src/ru-mp3s/` at `ru-mp3s/` relative to the page,
+    /// which resolves against the `<base data-trunk-public-url>` tag
+    /// regardless of deploy path).
+    fn toggle(&mut self, sentence_id: u32, clause_num: usize, voice: &str) {
+        if self.element.is_some() {
+            self.stop();
             return;
         }
 
-        let src = format!("ru-mp3s/voynaimir_{sentence_id:03}.mp3");
+        let src = format!(
+            "ru-mp3s/{}",
+            clause_audio::clause_mp3_relative_path(sentence_id, clause_num, voice)
+        );
         let Ok(element) = HtmlAudioElement::new_with_src(&src) else {
             return;
         };
+        element.set_loop(true);
         let _ = element.play();
         self.element = Some(element);
     }
@@ -197,24 +184,27 @@ impl Page2App {
             audio: WebAudio::default(),
         }
     }
+
+    /// The 1-based clause number space-bar playback targets: the selected
+    /// clause, or the first clause if none is selected yet.
+    fn current_clause_num(&self) -> Option<usize> {
+        if self.clauses.is_empty() {
+            return None;
+        }
+        Some(self.selected.unwrap_or(0) + 1)
+    }
 }
 
 impl eframe::App for Page2App {
     fn ui(&mut self, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
-        self.audio.forget_finished();
-
-        if ui.input(|i| i.key_pressed(egui::Key::Space)) {
-            self.audio.toggle(self.sentence_id);
-        }
-
-        // Keep repainting while a sound is playing so `forget_finished`
-        // notices promptly once it ends, without needing more input.
-        if self.audio.is_active() {
-            ui.ctx().request_repaint();
+        if ui.input(|i| i.key_pressed(egui::Key::Space))
+            && let Some(clause_num) = self.current_clause_num()
+        {
+            self.audio.toggle(self.sentence_id, clause_num, VOICE);
         }
 
         egui::CentralPanel::default().show(ui, |ui| {
-            ui.heading("Click a clause (space plays the sentence audio)");
+            ui.heading("Click a clause; space plays it on repeat");
 
             ui.add_space(12.0);
 
@@ -225,7 +215,7 @@ impl eframe::App for Page2App {
                     for (index, clause) in self.clauses.iter().enumerate() {
                         let is_selected = self.selected == Some(index);
 
-                        let mut text = egui::RichText::new(clause_text(clause)).size(TEXT_SIZE);
+                        let mut text = egui::RichText::new(clause.text()).size(TEXT_SIZE);
                         if is_selected {
                             text = text.background_color(ui.visuals().selection.bg_fill);
                         }
@@ -233,6 +223,7 @@ impl eframe::App for Page2App {
                         let response = ui.add(egui::Label::new(text).sense(egui::Sense::click()));
 
                         if response.clicked() {
+                            self.audio.stop();
                             self.selected = if is_selected { None } else { Some(index) };
                         }
 
