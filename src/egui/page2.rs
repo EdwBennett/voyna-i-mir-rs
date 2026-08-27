@@ -28,8 +28,16 @@ enum Pending {
     KeepLooping,
     /// Go silent.
     Stop,
-    /// Start looping the other voice.
+    /// Start looping the other voice, once.
     Switch(&'static str),
+    /// Start looping the other voice, and keep alternating every loop after
+    /// that (until something else - Space, `I`, `D` - overrides it).
+    Alternate,
+}
+
+/// The other of [`IRINA`]/[`DENIS`].
+fn other_voice(voice: &'static str) -> &'static str {
+    if voice == IRINA { DENIS } else { IRINA }
 }
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -49,16 +57,26 @@ pub fn run(sentence: Sentence) -> eframe::Result<()> {
     )
 }
 
-/// Clause-level audio page: click a clause (or use the left/right arrow
-/// keys, which wrap around the ends of the sentence) to select/highlight
-/// it, immediately stopping any playback in progress. `I`/`D` select the
-/// irina/denis voice and make sure it's looping the selected clause (or the
-/// first clause, if none is selected) - letting whatever's currently
-/// looping finish first if a different voice is playing. Space toggles the
-/// selected voice's playback: starts it if idle, or lets the current
-/// playthrough finish and then stops if playing - the selected voice itself
-/// is remembered across stops and clause changes. A status line below the
-/// clause text always shows what's selected/playing, for orientation.
+/// Clause-level audio page: click a clause to select/highlight it and
+/// immediately start looping the selected voice - clicking the already-
+/// selected clause deselects it instead, stopping playback with no restart.
+/// The left/right arrow keys (which wrap around the ends of the sentence)
+/// only select/highlight, immediately stopping any playback in progress
+/// without starting anything new - keyboard nav is unavailable on touch
+/// devices anyway, so click alone (as used on GitHub Pages from iOS/
+/// Android) needs to cover both selecting and starting playback. `I`/`D`
+/// select the irina/denis voice and make sure it's looping the selected
+/// clause (or the first clause, if none is selected) - letting whatever's
+/// currently looping finish first if a different voice is playing. `A`
+/// instead alternates the voice every loop (starting from the selected
+/// voice, or continuing after the current playthrough finishes if
+/// something's already playing) - it doesn't change the selected voice, so
+/// alternation isn't remembered; it must be re-triggered with `A` each time.
+/// Space toggles the selected voice's playback: starts it if idle, or lets
+/// the current playthrough finish and then stops if playing - the selected
+/// voice itself is remembered across stops and clause changes. A status
+/// line below the clause text always shows what's selected/playing, for
+/// orientation.
 pub struct Page2App {
     clauses: Vec<Clause>,
     /// Index into `clauses` of the currently selected clause, if any.
@@ -197,10 +215,29 @@ impl NativeAudio {
         }
     }
 
+    /// Handles an `A` press: starts `starting_voice` looping immediately if
+    /// nothing is playing, then alternates voice every loop from then on
+    /// (including if something else is already playing - the current
+    /// playthrough finishes normally, then alternation begins).
+    fn alternate(&mut self, sentence_id: u32, clause_num: usize, starting_voice: &'static str) {
+        match &mut self.playing {
+            None => {
+                self.start(sentence_id, clause_num, starting_voice);
+                if let Some(playing) = &mut self.playing {
+                    playing.pending = Pending::Alternate;
+                }
+            }
+            Some(playing) => {
+                playing.pending = Pending::Alternate;
+            }
+        }
+    }
+
     /// Advances looping playback: once the current playthrough ends,
-    /// applies whatever was queued via [`Self::select_voice`] or
-    /// [`Self::toggle`] - looping the same voice again, stopping, or
-    /// switching voice. Call once per frame.
+    /// applies whatever was queued via [`Self::select_voice`], [`Self::toggle`],
+    /// or [`Self::alternate`] - looping the same voice again, stopping,
+    /// switching voice once, or alternating voice indefinitely. Call once
+    /// per frame.
     fn update(&mut self) {
         let Some(playing) = self.playing.take() else {
             return;
@@ -218,6 +255,16 @@ impl NativeAudio {
             Pending::Stop => {}
             Pending::Switch(voice) => {
                 self.start(playing.sentence_id, playing.clause_num, voice);
+            }
+            Pending::Alternate => {
+                self.start(
+                    playing.sentence_id,
+                    playing.clause_num,
+                    other_voice(playing.voice),
+                );
+                if let Some(now_playing) = &mut self.playing {
+                    now_playing.pending = Pending::Alternate;
+                }
             }
         }
     }
@@ -314,10 +361,29 @@ impl WebAudio {
         }
     }
 
+    /// Handles an `A` press: starts `starting_voice` looping immediately if
+    /// nothing is playing, then alternates voice every loop from then on
+    /// (including if something else is already playing - the current
+    /// playthrough finishes normally, then alternation begins).
+    fn alternate(&mut self, sentence_id: u32, clause_num: usize, starting_voice: &'static str) {
+        match &mut self.playing {
+            None => {
+                self.start(sentence_id, clause_num, starting_voice);
+                if let Some(playing) = &mut self.playing {
+                    playing.pending = Pending::Alternate;
+                }
+            }
+            Some(playing) => {
+                playing.pending = Pending::Alternate;
+            }
+        }
+    }
+
     /// Advances looping playback: once the current playthrough ends,
-    /// applies whatever was queued via [`Self::select_voice`] or
-    /// [`Self::toggle`] - looping the same voice again, stopping, or
-    /// switching voice. Call once per frame.
+    /// applies whatever was queued via [`Self::select_voice`], [`Self::toggle`],
+    /// or [`Self::alternate`] - looping the same voice again, stopping,
+    /// switching voice once, or alternating voice indefinitely. Call once
+    /// per frame.
     fn update(&mut self) {
         let Some(playing) = self.playing.take() else {
             return;
@@ -336,6 +402,16 @@ impl WebAudio {
             Pending::Stop => {}
             Pending::Switch(voice) => {
                 self.start(playing.sentence_id, playing.clause_num, voice);
+            }
+            Pending::Alternate => {
+                self.start(
+                    playing.sentence_id,
+                    playing.clause_num,
+                    other_voice(playing.voice),
+                );
+                if let Some(now_playing) = &mut self.playing {
+                    now_playing.pending = Pending::Alternate;
+                }
             }
         }
     }
@@ -395,13 +471,14 @@ impl eframe::App for Page2App {
     fn ui(&mut self, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
         self.audio.update();
 
-        let (arrow_right, arrow_left, space, key_i, key_d, ctrl_w) = ui.input(|i| {
+        let (arrow_right, arrow_left, space, key_i, key_d, key_a, ctrl_w) = ui.input(|i| {
             (
                 i.key_pressed(egui::Key::ArrowRight),
                 i.key_pressed(egui::Key::ArrowLeft),
                 i.key_pressed(egui::Key::Space),
                 i.key_pressed(egui::Key::I),
                 i.key_pressed(egui::Key::D),
+                i.key_pressed(egui::Key::A),
                 i.modifiers.ctrl && i.key_pressed(egui::Key::W),
             )
         });
@@ -433,6 +510,10 @@ impl eframe::App for Page2App {
                 self.audio
                     .toggle(self.sentence_id, clause_num, self.selected_voice);
             }
+            if key_a {
+                self.audio
+                    .alternate(self.sentence_id, clause_num, self.selected_voice);
+            }
         }
 
         let status = self.audio.status();
@@ -446,7 +527,9 @@ impl eframe::App for Page2App {
         }
 
         egui::CentralPanel::default().show(ui, |ui| {
-            ui.heading("Click a clause (or left/right-arrow); space toggles, i/d selects voice");
+            ui.heading(
+                "Click a clause to play it; space toggles, i/d selects voice, a alternates",
+            );
 
             ui.add_space(12.0);
 
@@ -466,7 +549,13 @@ impl eframe::App for Page2App {
 
                         if response.clicked() {
                             self.audio.stop();
-                            self.selected = if is_selected { None } else { Some(index) };
+                            if is_selected {
+                                self.selected = None;
+                            } else {
+                                self.selected = Some(index);
+                                self.audio
+                                    .start(self.sentence_id, index + 1, self.selected_voice);
+                            }
                         }
 
                         // Keep the newly-selected clause visible when it was
@@ -495,8 +584,18 @@ impl eframe::App for Page2App {
                         "Playing {voice}, clause {clause_num} — switching to {next_voice} after this loop"
                     )
                 }
+                Some((voice, clause_num, Pending::Alternate)) => {
+                    format!(
+                        "Playing {voice}, clause {clause_num} — alternating with {}",
+                        other_voice(voice)
+                    )
+                }
                 None => match self.selected {
-                    Some(index) => format!("Clause {} selected", index + 1),
+                    Some(index) => format!(
+                        "Clause {} selected — space plays {}",
+                        index + 1,
+                        self.selected_voice
+                    ),
                     None => "No clause selected".to_string(),
                 },
             };
