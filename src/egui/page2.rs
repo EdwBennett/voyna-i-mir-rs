@@ -60,9 +60,18 @@ impl VoiceMode {
     }
 }
 
-/// Builds the heading text, with whichever of "Irina"/"Denis"/"Alternate"
-/// matches `mode` highlighted the same way a selected clause is.
-fn heading_job(ui: &egui::Ui, mode: VoiceMode) -> egui::text::LayoutJob {
+/// Text shown below the clause list, above the status line - kept out of
+/// the top row (unlike the voice chooser) since there's no touch real
+/// estate to spare for it up there, especially on Android.
+const INSTRUCTIONS: &str =
+    "Click a clause to play it; space toggles, i/d selects voice, a alternates.";
+
+/// Builds the "Voice: Irina / Denis / Alternate" chooser row, with
+/// whichever one matches `mode` highlighted the same way a selected clause
+/// is. Kept as a single short line (unlike the fuller instructions text,
+/// relocated below the clause list) since this is the one control that has
+/// to stay visible above the fold on a phone screen.
+fn voice_chooser_job(ui: &egui::Ui, mode: VoiceMode) -> egui::text::LayoutJob {
     let font_id = egui::TextStyle::Heading.resolve(ui.style());
     let color = ui.visuals().text_color();
     let highlight = ui.visuals().selection.bg_fill;
@@ -73,12 +82,7 @@ fn heading_job(ui: &egui::Ui, mode: VoiceMode) -> egui::text::LayoutJob {
         color,
         ..Default::default()
     };
-    job.append(
-        "Click a clause to play it; space toggles, i/d selects voice, a alternates. \
-         Tap to choose: ",
-        0.0,
-        plain.clone(),
-    );
+    job.append("Voice: ", 0.0, plain.clone());
 
     for (index, (label, label_mode)) in [
         ("Irina", VoiceMode::Irina),
@@ -141,16 +145,18 @@ pub fn run(sentence: Sentence) -> eframe::Result<()> {
 /// playthrough finishes if something's already playing). Space toggles
 /// playback: starts it if idle (as a single voice, or alternating, per
 /// `voice_mode`), or lets the current playthrough finish and then stops if
-/// playing. Tapping the heading is the touch equivalent of `I`/`D`/`A`
+/// playing. Tapping the "Voice: Irina / Denis / Alternate" row at the top
+/// (the one control kept above the clause list, since there's little touch
+/// real estate to spare) is the touch equivalent of `I`/`D`/`A`
 /// (unreachable on touch, and double-tap is reserved by the OS for zoom):
 /// each tap cycles `voice_mode` Irina -> Denis -> alternate -> Irina, with
-/// the current choice highlighted in the heading text. Unlike the keys, a
-/// heading tap never starts playback on its own - choosing a voice is a
-/// passive choice, not a play button - it only steers already-playing audio
-/// (immediately if it matches, otherwise once the current playthrough
-/// ends); the next clause tap or Space is what starts it. A status line
-/// below the clause text always shows what's selected/playing, for
-/// orientation.
+/// the current choice highlighted. Unlike the keys, a tap there never
+/// starts playback on its own - choosing a voice is a passive choice, not
+/// a play button - it only steers already-playing audio (immediately if it
+/// matches, otherwise once the current playthrough ends); the next clause
+/// tap or Space is what starts it. Below the clause list, in ascending
+/// order of how often they change, sit the static instructions and then a
+/// status line always showing what's selected/playing, for orientation.
 pub struct Page2App {
     clauses: Vec<Clause>,
     /// Index into `clauses` of the currently selected clause, if any.
@@ -614,11 +620,11 @@ impl eframe::App for Page2App {
         }
 
         egui::CentralPanel::default().show(ui, |ui| {
-            let heading_job = heading_job(ui, self.voice_mode);
-            let heading_response =
-                ui.add(egui::Label::new(heading_job).sense(egui::Sense::click()));
+            let chooser_job = voice_chooser_job(ui, self.voice_mode);
+            let chooser_response =
+                ui.add(egui::Label::new(chooser_job).sense(egui::Sense::click()));
 
-            if heading_response.clicked() {
+            if chooser_response.clicked() {
                 self.voice_mode = self.voice_mode.next();
                 match self.voice_mode {
                     VoiceMode::Irina => self.selected_voice = IRINA,
@@ -697,6 +703,9 @@ impl eframe::App for Page2App {
             });
 
             ui.add_space(12.0);
+
+            ui.weak(INSTRUCTIONS);
+            ui.add_space(4.0);
 
             let status_text = match status {
                 Some((voice, clause_num, Pending::KeepLooping)) => {
