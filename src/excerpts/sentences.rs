@@ -182,7 +182,7 @@ mod tests {
     fn run_finds_sentence_by_id() {
         let sentence = run(1).expect("id 1 should exist in Volume_1_Part_1.yaml");
         assert_eq!(sentence.id, 1);
-        assert!(sentence.ru.starts_with("Так говорила"));
+        assert!(sentence.ru.starts_with("Тˈак говорˈила"));
     }
 
     #[test]
@@ -205,7 +205,7 @@ mod tests {
         assert_eq!(
             tokens[0],
             WordToken::Word {
-                ru: "Так".to_string(),
+                ru: "Тˈак".to_string(),
                 roman: "Tak".to_string(),
                 en: "thus / so".to_string()
             }
@@ -213,7 +213,7 @@ mod tests {
         assert_eq!(
             tokens[1],
             WordToken::Word {
-                ru: "говорила".to_string(),
+                ru: "говорˈила".to_string(),
                 roman: "govorila".to_string(),
                 en: "spoke / said".to_string()
             }
@@ -222,13 +222,13 @@ mod tests {
         // The comma after "Шерер (Scherer)," is its own token between the two words.
         let sherer = tokens
             .iter()
-            .position(|t| matches!(t, WordToken::Word { ru, .. } if ru == "Шерер"))
-            .expect("Шерер should be present");
+            .position(|t| matches!(t, WordToken::Word { ru, .. } if ru == "Шˈерер"))
+            .expect("Шˈерер should be present");
         assert_eq!(tokens[sherer + 1], WordToken::Punct(",".to_string()));
         assert_eq!(
             tokens[sherer + 2],
             WordToken::Word {
-                ru: "фрейлина".to_string(),
+                ru: "фрˈейлина".to_string(),
                 roman: "freylina".to_string(),
                 en: "maid of honor".to_string()
             }

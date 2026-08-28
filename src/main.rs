@@ -141,7 +141,8 @@ fn main() {
             let sentence =
                 excerpts::sentences::run(id).unwrap_or_else(|| panic!("no sentence with id {id}"));
             let title = sentence.title();
-            let app_creator: eframe::AppCreator<'static> = Box::new(move |_cc| {
+            let app_creator: eframe::AppCreator<'static> = Box::new(move |cc| {
+                egui::install_fonts(&cc.egui_ctx);
                 Ok(Box::new(egui::select_word::SentenceApp::new(sentence)) as Box<dyn eframe::App>)
             });
             (title, app_creator)
@@ -151,7 +152,8 @@ fn main() {
             let sentence =
                 excerpts::sentences::run(id).unwrap_or_else(|| panic!("no sentence with id {id}"));
             let title = sentence.title();
-            let app_creator: eframe::AppCreator<'static> = Box::new(move |_cc| {
+            let app_creator: eframe::AppCreator<'static> = Box::new(move |cc| {
+                egui::install_fonts(&cc.egui_ctx);
                 Ok(Box::new(egui::page2::Page2App::new(sentence)) as Box<dyn eframe::App>)
             });
             (title, app_creator)

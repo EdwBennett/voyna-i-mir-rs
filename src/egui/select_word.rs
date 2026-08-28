@@ -19,7 +19,10 @@ pub fn run(sentence: Sentence) -> eframe::Result<()> {
     eframe::run_native(
         &title,
         options,
-        Box::new(|_cc| Ok(Box::new(SentenceApp::new(sentence)))),
+        Box::new(|cc| {
+            super::install_fonts(&cc.egui_ctx);
+            Ok(Box::new(SentenceApp::new(sentence)))
+        }),
     )
 }
 

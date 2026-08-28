@@ -53,7 +53,10 @@ pub fn run(sentence: Sentence) -> eframe::Result<()> {
     eframe::run_native(
         &title,
         options,
-        Box::new(|_cc| Ok(Box::new(Page2App::new(sentence)))),
+        Box::new(|cc| {
+            super::install_fonts(&cc.egui_ctx);
+            Ok(Box::new(Page2App::new(sentence)))
+        }),
     )
 }
 
