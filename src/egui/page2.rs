@@ -40,6 +40,71 @@ fn other_voice(voice: &'static str) -> &'static str {
     if voice == IRINA { DENIS } else { IRINA }
 }
 
+/// What tapping the heading (the touch equivalent of `I`/`D`/`A`, since
+/// double-tap is reserved by the OS for zoom and there's no screen space to
+/// spare for dedicated buttons) selects next.
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum VoiceMode {
+    Irina,
+    Denis,
+    Alternate,
+}
+
+impl VoiceMode {
+    fn next(self) -> Self {
+        match self {
+            VoiceMode::Irina => VoiceMode::Denis,
+            VoiceMode::Denis => VoiceMode::Alternate,
+            VoiceMode::Alternate => VoiceMode::Irina,
+        }
+    }
+}
+
+/// Builds the heading text, with whichever of "Irina"/"Denis"/"Alternate"
+/// matches `mode` highlighted the same way a selected clause is.
+fn heading_job(ui: &egui::Ui, mode: VoiceMode) -> egui::text::LayoutJob {
+    let font_id = egui::TextStyle::Heading.resolve(ui.style());
+    let color = ui.visuals().text_color();
+    let highlight = ui.visuals().selection.bg_fill;
+
+    let mut job = egui::text::LayoutJob::default();
+    let plain = egui::TextFormat {
+        font_id: font_id.clone(),
+        color,
+        ..Default::default()
+    };
+    job.append(
+        "Click a clause to play it; space toggles, i/d selects voice, a alternates. \
+         Tap to choose: ",
+        0.0,
+        plain.clone(),
+    );
+
+    for (index, (label, label_mode)) in [
+        ("Irina", VoiceMode::Irina),
+        ("Denis", VoiceMode::Denis),
+        ("Alternate", VoiceMode::Alternate),
+    ]
+    .into_iter()
+    .enumerate()
+    {
+        if index > 0 {
+            job.append(" / ", 0.0, plain.clone());
+        }
+        let format = if label_mode == mode {
+            egui::TextFormat {
+                background: highlight,
+                ..plain.clone()
+            }
+        } else {
+            plain.clone()
+        };
+        job.append(label, 0.0, format);
+    }
+
+    job
+}
+
 #[cfg(not(target_arch = "wasm32"))]
 pub fn run(sentence: Sentence) -> eframe::Result<()> {
     let title = sentence.title();
@@ -61,32 +126,42 @@ pub fn run(sentence: Sentence) -> eframe::Result<()> {
 }
 
 /// Clause-level audio page: click a clause to select/highlight it and
-/// immediately start looping the selected voice - clicking the already-
-/// selected clause deselects it instead, stopping playback with no restart.
-/// The left/right arrow keys (which wrap around the ends of the sentence)
-/// only select/highlight, immediately stopping any playback in progress
-/// without starting anything new - keyboard nav is unavailable on touch
-/// devices anyway, so click alone (as used on GitHub Pages from iOS/
-/// Android) needs to cover both selecting and starting playback. `I`/`D`
-/// select the irina/denis voice and make sure it's looping the selected
-/// clause (or the first clause, if none is selected) - letting whatever's
-/// currently looping finish first if a different voice is playing. `A`
-/// instead alternates the voice every loop (starting from the selected
-/// voice, or continuing after the current playthrough finishes if
-/// something's already playing) - it doesn't change the selected voice, so
-/// alternation isn't remembered; it must be re-triggered with `A` each time.
-/// Space toggles the selected voice's playback: starts it if idle, or lets
-/// the current playthrough finish and then stops if playing - the selected
-/// voice itself is remembered across stops and clause changes. A status
-/// line below the clause text always shows what's selected/playing, for
+/// immediately start looping the selected voice (or alternating it, in
+/// alternate mode) - clicking the already-selected clause deselects it
+/// instead, stopping playback with no restart. The left/right arrow keys
+/// (which wrap around the ends of the sentence) only select/highlight,
+/// immediately stopping any playback in progress without starting anything
+/// new - keyboard nav is unavailable on touch devices anyway, so click alone
+/// (as used on GitHub Pages from iOS/Android) needs to cover both selecting
+/// and starting playback. `I`/`D` select the irina/denis voice and make sure
+/// it's looping the selected clause (or the first clause, if none is
+/// selected) - letting whatever's currently looping finish first if a
+/// different voice is playing. `A` instead alternates the voice every loop
+/// (starting from the selected voice, or continuing after the current
+/// playthrough finishes if something's already playing). Space toggles
+/// playback: starts it if idle (as a single voice, or alternating, per
+/// `voice_mode`), or lets the current playthrough finish and then stops if
+/// playing. Tapping the heading is the touch equivalent of `I`/`D`/`A`
+/// (unreachable on touch, and double-tap is reserved by the OS for zoom):
+/// each tap cycles `voice_mode` Irina -> Denis -> alternate -> Irina, with
+/// the current choice highlighted in the heading text. Unlike the keys, a
+/// heading tap never starts playback on its own - choosing a voice is a
+/// passive choice, not a play button - it only steers already-playing audio
+/// (immediately if it matches, otherwise once the current playthrough
+/// ends); the next clause tap or Space is what starts it. A status line
+/// below the clause text always shows what's selected/playing, for
 /// orientation.
 pub struct Page2App {
     clauses: Vec<Clause>,
     /// Index into `clauses` of the currently selected clause, if any.
     selected: Option<usize>,
-    /// The voice `Space` plays/toggles, and that `I`/`D` last selected.
-    /// Persists across stops and clause changes.
+    /// The voice `Space` plays/toggles, and that `I`/`D` (or a heading tap
+    /// landing on Irina/Denis) last selected. Persists across stops and
+    /// clause changes.
     selected_voice: &'static str,
+    /// What the next heading tap will select - cycles independently of
+    /// `selected_voice`, which alternate mode leaves unchanged.
+    voice_mode: VoiceMode,
     sentence_id: u32,
     #[cfg(not(target_arch = "wasm32"))]
     audio: NativeAudio,
@@ -435,6 +510,7 @@ impl Page2App {
             clauses: sentence.clauses(),
             selected: None,
             selected_voice: IRINA,
+            voice_mode: VoiceMode::Irina,
             #[cfg(not(target_arch = "wasm32"))]
             audio: NativeAudio::new(),
             #[cfg(target_arch = "wasm32")]
@@ -503,17 +579,25 @@ impl eframe::App for Page2App {
         if let Some(clause_num) = self.current_clause_num() {
             if key_i {
                 self.selected_voice = IRINA;
+                self.voice_mode = VoiceMode::Irina;
                 self.audio.select_voice(self.sentence_id, clause_num, IRINA);
             }
             if key_d {
                 self.selected_voice = DENIS;
+                self.voice_mode = VoiceMode::Denis;
                 self.audio.select_voice(self.sentence_id, clause_num, DENIS);
             }
             if space {
-                self.audio
-                    .toggle(self.sentence_id, clause_num, self.selected_voice);
+                if self.voice_mode == VoiceMode::Alternate && self.audio.status().is_none() {
+                    self.audio
+                        .alternate(self.sentence_id, clause_num, self.selected_voice);
+                } else {
+                    self.audio
+                        .toggle(self.sentence_id, clause_num, self.selected_voice);
+                }
             }
             if key_a {
+                self.voice_mode = VoiceMode::Alternate;
                 self.audio
                     .alternate(self.sentence_id, clause_num, self.selected_voice);
             }
@@ -530,9 +614,37 @@ impl eframe::App for Page2App {
         }
 
         egui::CentralPanel::default().show(ui, |ui| {
-            ui.heading(
-                "Click a clause to play it; space toggles, i/d selects voice, a alternates",
-            );
+            let heading_job = heading_job(ui, self.voice_mode);
+            let heading_response =
+                ui.add(egui::Label::new(heading_job).sense(egui::Sense::click()));
+
+            if heading_response.clicked() {
+                self.voice_mode = self.voice_mode.next();
+                match self.voice_mode {
+                    VoiceMode::Irina => self.selected_voice = IRINA,
+                    VoiceMode::Denis => self.selected_voice = DENIS,
+                    VoiceMode::Alternate => {}
+                }
+                // Only steer already-playing audio - selecting a voice/mode
+                // is a passive choice, not a play button; playback starts
+                // via a clause tap or Space.
+                if self.audio.status().is_some()
+                    && let Some(clause_num) = self.current_clause_num()
+                {
+                    match self.voice_mode {
+                        VoiceMode::Irina => {
+                            self.audio.select_voice(self.sentence_id, clause_num, IRINA)
+                        }
+                        VoiceMode::Denis => {
+                            self.audio.select_voice(self.sentence_id, clause_num, DENIS)
+                        }
+                        VoiceMode::Alternate => {
+                            self.audio
+                                .alternate(self.sentence_id, clause_num, self.selected_voice);
+                        }
+                    }
+                }
+            }
 
             ui.add_space(12.0);
 
@@ -556,8 +668,19 @@ impl eframe::App for Page2App {
                                 self.selected = None;
                             } else {
                                 self.selected = Some(index);
-                                self.audio
-                                    .start(self.sentence_id, index + 1, self.selected_voice);
+                                if self.voice_mode == VoiceMode::Alternate {
+                                    self.audio.alternate(
+                                        self.sentence_id,
+                                        index + 1,
+                                        self.selected_voice,
+                                    );
+                                } else {
+                                    self.audio.start(
+                                        self.sentence_id,
+                                        index + 1,
+                                        self.selected_voice,
+                                    );
+                                }
                             }
                         }
 
