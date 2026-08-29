@@ -9,7 +9,6 @@ with open(filename, "r", encoding="utf-8") as f:
 output = [
     {
         "chapter": item["chapter"],
-        "id": item["id"],
         "ru": item["ru"],
         "en": item["en"],
     }
