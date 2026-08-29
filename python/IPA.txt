@@ -1,0 +1,86 @@
+Below are broad IPA transcriptions in standard Russian pronunciation for every `ru` item in the YAML. They are read naturally in connected speech; exact vowel reduction can vary somewhat by speaker. The source contains chapters I–XXV. [ppl-ai-file-upload.s3.amazonaws](https://ppl-ai-file-upload.s3.amazonaws.com/web/direct-files/attachments/13088116/21712560-2d06-4ffa-aed4-b30099fb3f17/output.yaml?AWSAccessKeyId=ASIA2F3EMEYETBLD4PYI&Signature=PYgxOCPFtOvl1Y1eoO5bk9cnRxA%3D&x-amz-security-token=IQoJb3JpZ2luX2VjEJr%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaCXVzLWVhc3QtMSJGMEQCIA0d9vKESupOApvK0KNVyt3yisDp2Y%2F9EHQBFlIY%2Fs76AiBsUR95cz44c9DJbTlsTuTKOS2NHIRE4cSBEAek20Z4uyrzBAhjEAEaDDY5OTc1MzMwOTcwNSIMRR28oC2HpA3Oi5RTKtAEAoSCiImCCrIjR%2F8DA46WDH1jQYialYPs7rgmmNwV1UB0N4e9aHWQOzh1Wx1WS5eRLdJ4FSgZfSD9izzvv37YwAjvB3ka6XgK5lyovRg5NhywF%2FvFD8MZLDi8MJ5zOTe2gjhKEh9PzVCZOAGGJwiwrblPFfQafh16Dd%2F0I%2FpQY7B0y%2B5g%2FzP7yTlIWwRZCDxXT2UQE0NUfWDlrAz%2B%2Foz98j5aHCCVE0zj3by3eqyzzsimWbodyApmUkilYJjW4sjaj%2BnSJo%2FcND1jsdahA6Aem0ZCTTI0ZL3f6E8qcJcA87llt79CC043ARpr92ucjdMVX81tLCig9jUm1veX%2FFzKRYlx0oo18DMUXyIKrfUyScaJeTBgz4bDLvqMcJT3%2BiD5lO6Jum5BOUZ2IoJO4MTeGltHPGn8Ap7sNrTrWu2Ta1yUrdNTcEK3a1rWPskE2AYiksxfECV74FRNS7mwkJrSF5yxVy8pwn2eD6%2FHjzv%2B44iCnQ9m8erg7QVBXVqGmpggwm84YeEXj96eoCkuyNUb8qt1UWXalT0eP4qhTY%2FfFw1mAP%2Fd2fFuBeNFlepfRrtaYlxymKxRmCkEe%2B2XeA6fzZbn7CuIszrFqE%2BZzHDFLs1pgZEDWO2i8yDa%2FH1QbFmnnBUu05KWA10APzg5YFZSKQBvdnvG6GV1yDX8ATx5KbEzNQrTW%2B7kCRw5L%2BUP246o7CO16dWxbN54jgrfv4y3hE9lQ0ImvqTYahLMukjVHZe23vq3ixkCLpn%2BXtcnibNkWW%2BcmVuTgGedG4WwmPXVuzDK0crUBjqZAXIdlTNjMVtdIM040vqa%2FkWE5QsoGvKWFdF3dZq1PiZRM%2BouXYhPQhzgzP%2FznRY%2B6vPDsAjtuATkCKCZBelykTyARtPfrHo2N5Y6GKvj6Esc2wFwTNNOBOAPGLfJvB%2FaIDmp6oWw%2BHmWmp1GxaaQSBXAj6ZYV5kvjcC0dBRayLjyx2jvc7sIRNDnKTxhtpCdyUTacLClZSKWqg%3D%3D&Expires=1787999901)
+
+## Chapters I–V
+
+- `"chapter": "I"`  
+  `IPA`: /tɐk ɡəvɐˈrʲilə f ɪˈlʲe dvʲe ˈtɨsʲɪt͡ɕɪ pʲɪˈtaɡə ˈɡodə ɪzˈvʲesnəjə ˈanːə ˈpavləvnə ʂɛˈrʲer, frʲɪˈlʲinə ɪ prʲɪblʲɪˈʐonːəjə ɪmpʲɪˈratərʲɪt͡sɨ mɐˈrʲiɪ fʲɪəˈdorəvnɨ, fstrʲɪˈt͡ɕajə ˈvaʐnəvə ɪ t͡ɕɪˈnofnəvə ˈknʲazʲə vɐˈsʲilʲɪjə, ˈpʲervəvə prʲɪjɪˈxavʂəvə nɐ jɪˈvo ˈvʲet͡ɕɪr./`
+
+- `"chapter": "II"`  
+  `IPA`: /prʲɪˈjexələ ˈvɨsʂəjə znatʲ pʲɪtʲɪrˈburɡə, ˈlʲudʲɪ ˈsamɨjə rɐznɐˈrodnɨjə pɐ ˈvozrəstəm ɪ xɐˈraktʲɪrəm, nə ɐdʲɪˈnakəvɨjə pɐ ɐpˈɕestvu, f kɐˈkom fsʲe ˈʐɨlʲɪ; prʲɪˈjexələ dot͡ɕ knʲɪˈzʲa vɐˈsʲilʲɪjə, krɐˈsavʲɪt͡sə ɛˈlɛn, zɐjɪˈxavʂəjə zɐ ɐtˈt͡som, ʂtobɨ s nʲim vmʲesʲtʲe ˈjexətʲ nɐ ˈprazdʲnʲɪk pɐˈslanʲːɪkə./`
+
+- `"chapter": "III"`  
+  `IPA`: /ˈkromʲɪ ˈtʲetuʂkʲɪ, ˈokələ kɐˈtorəj sʲɪˈdʲelə ˈtolʲkə ɐdˈna pɐʐɨˈlajə ˈdamə s ɪspɐˈlakənːɨm, xuˈdɨm lʲɪˈt͡som, ˈnʲeskəlʲkə t͡ɕuˈʐajə f ˈetəm blʲɪˈsʲtʲaɕːɪm ɐpˈɕestvʲe, ɐpˈɕestvə rɐzˈbʲiləsʲ nɐ trʲi kruʐˈka./`
+
+- `"chapter": "IV"`  
+  `IPA`: /nʲɪsmɐˈtrʲa nɐ to, ʂto knʲasʲ vɐˈsʲilʲɪj nʲɪɐˈxot͡ɕnə ɪ pɐt͡ɕˈtʲi nʲɪˈut͡ɕtʲɪvə ˈsluʂəl pɐʐɨˈluju ˈdamu ɪ dɐˈʐe vɨˈkazɨvəl nʲɪtʲɪrˈpʲenʲɪje, ɐˈna ˈlaskəvə ɪ trɐˈɡatʲɪlʲnə ulɨˈbaləsʲ jɪˈmu ɪ, ʂtop on nʲɪ uˈʂol, vzʲɪˈla jɪˈvo zɐ ˈruku./`
+
+- `"chapter": "V"`  
+  `IPA`: /ˈtols.tɨj, ˈvɨʂə ɐbɨknɐˈvʲenːəvə ˈrostə, ʂɨˈrokʲɪj, s ɐɡˈromnɨmʲɪ ˈkrasnɨmʲɪ ruˈkamʲɪ, on, kək ɡəvɐˈrʲit͡sə, nʲɪ uˈmʲel vɐjˈtʲi f sɐˈlon ɪ jɪˈɕːo ˈmʲenʲɪj uˈmʲel ɪz nʲɪˈvo ˈvɨjtʲɪ, to jɪstʲ pʲɪrʲɪt ˈvɨxədəm skɐˈzatʲ ʂtoˈnʲɪbutʲ ɐˈsobʲɪnːə prʲɪˈjatnəjə./`
+
+## Chapters VI–X
+
+- `"chapter": "VI"`  
+  `IPA`: /f sʲɪrʲɪˈdʲinʲɪ ˈuʐɨnə knʲasʲ ɐnˈdrʲej ɐbləkɐˈtʲilsʲə ɪ, kək t͡ɕɪlɐˈvʲek, dɐvˈno ɪˈmʲejuɕːɪj ʂtoˈnʲɪbutʲ nɐ ˈsʲert͡sə ɪ fdruk rʲɪˈʂajuɕːɪjsʲə ˈvɨskəzət͡sə, s vɨrɐˈʐenʲɪjɪm ˈnʲervnəvə rɐzdrɐˈʐenʲɪjə, f kɐˈkom pʲɪˈer nʲɪkɐɡˈda jɪˈɕːo nʲɪ vʲɪˈdal svɐˈvo prʲɪjɪˈtʲelʲə, nɐˈt͡ɕal ɡəvɐˈrʲitʲ./`
+
+- `"chapter": "VII"`  
+  `IPA`: /ɐ nʲom bɨlə dɐlɐˈʐenə ɡəsʊˈdarʲu, ɪ, nʲɪ f prʲɪˈmʲer druˈɡʲim, on bɨl pʲɪrʲɪvʲɪˈdʲon f ˈɡvardʲɪju sʲɪmʲɪˈnofskəvə pəlˈka prɐˈporɕːɪkəm./`
+
+- `"chapter": "VIII"`  
+  `IPA`: /ɡrɐˈfʲinʲə ɡlʲɪˈdʲelə nɐ ˈɡosʲtʲu, prʲɪˈjatnə ulɨˈbajasʲ, fprɐt͡ɕəm, nʲɪ skrɨˈvaja tɐˈvo, ʂto nʲɪ ɐɡɐrˈt͡ɕit͡sə tʲɪˈpʲerʲ nʲɪˈskolʲkə, ˈjeslʲɪ ˈɡosʲtʲə pɐdˈnʲimʲɪt͡sə ɪ uˈjedʲɪt./`
+
+- `"chapter": "IX"`  
+  `IPA`: /ˈsonʲə bɨˈla ˈtonʲɪnʲkəjə, mʲɪnʲɪɐˈtʲurnʲɪnʲkəjə bruˈnʲetkə s ˈmʲaxkʲɪm, ɐtʲɪˈnʲonːɨm dlʲinːɨmʲɪ rʲɪsˈnʲit͡səmʲɪ vzɡlʲɪˈdom, ɡusˈtoju t͡ɕɪrˈnoju kɐˈsoju, dva ˈrazə ɐbvʲɪˈvaɕːɪju jɪˈjo ɡəˈlovu, ɪ ʐɨltɐˈvatɨm ɐtˈtenkəm ˈkoʐɨ nɐ lʲɪˈt͡sʲe ɪ f ɐsɐˈbʲɪnːəstʲɪ nɐ ɐbnɐʐɨnːɨx xuˈdoɕːəvɨx, nə ɡrɐˈt͡sioznɨx muskuˈlʲistɨx ruˈkax ɪ ʂɨˈje./`
+
+- `"chapter": "X"`  
+  `IPA`: /nɐˈtaʂə, prʲɪtʲɪxˈnuf, vɨˈɡlʲɪdɨvələ ɪz svɐˈjej zɐˈsadɨ, ɐʐɨˈdaja, ʂto on ˈbudʲɪt ˈdʲelətʲ./`
+
+## Chapters XI–XV
+
+- `"chapter": "XI"`  
+  `IPA`: /ɡrɐˈfʲinʲe xɐˈtʲeləsʲ s ɡlɐˈzu nɐ ɡlas pəɡəvɐˈrʲitʲ s ˈdruɡəm svɐˈvo ˈdʲetstvə, knʲɪˈɡʲinʲɪj ˈanːəj mʲɪˈxajləvnəj, kɐˈtoruju ɐˈna nʲɪ vʲɪˈdalə xɐˈroʂɨnʲkə s jɪˈjo prʲɪˈjezdə ɪs pʲɪtʲɪrˈburɡə./`
+
+- `"chapter": "XII"`  
+  `IPA`: /nʲɪsmɐˈtrʲa nɐ to, ʂto t͡ɕjɐˈta kɐˈrʲetə stɐˈjala u pɐdˈjezda, ʂvʲɪjˈt͡sar, ɐɡlʲɪˈdʲef matʲ s ˈsɨnəm, kɐˈtorɨjə, nʲɪ prʲɪkɐˈzɨvəjə dɐklɐˈdɨvətʲ ɐ sʲɪˈbʲe, ˈprʲamə vɐʂˈlʲi f stʲɪklʲɪˈnɨjə sʲɪˈnʲi mʲɪʐdu dvumʲa rʲɪˈdamʲɪ stɐˈtuj f ˈnʲiʂəx, znɐˈt͡ɕitʲɪlʲnə pɐsmɐˈtrʲef nɐ ˈstarʲɪnʲkʲɪj sɐˈlop, sprɐˈsʲil, kɐˈvo ɪm uˈɡodnə, knʲɪˈʐen ɪlʲɪ ˈɡrafə./`
+
+- `"chapter": "XIII"`  
+  `IPA`: /f to ˈvrʲemʲə kək bɐˈrʲis vɐˈʂol k nʲɪˈmu, pʲɪˈer xɐˈdʲil pɐ svɐˈjej ˈkomnətʲɪ, ɪzˈrʲetkə ɐstɐnɐˈvlʲivəjəsʲ f uɡˈlax, ˈdʲeləjə uɡrɐˈʐajuɕːɪjə ˈʐestɨ k stʲɪˈnʲe, kək ˈbudtə prɐnʲɪˈzaja nʲɪˈvʲidʲɪməvə vrɐˈɡa ʂpɐˈɡoj, ɪ ˈstrogə vzɡlʲɪˈdɨvəjə svʲerx ɐt͡ɕˈkof ɪ zɐˈtʲem fno f nɐt͡ɕɪˈnaja svɐˈju prɐˈɡulku./`
+
+- `"chapter": "XIV"`  
+  `IPA`: /kɐɡˈda ˈanːə mʲɪˈxajləvnə uˈjexələ s ˈsɨnəm k ˈɡrafu kʲɪˈrʲilu vlɐˈdʲimʲɪrəvʲɪt͡ɕu bʲɪzuˈxovu, ɡrɐˈfʲinʲə rɐsˈtovə ˈdolɡə sʲɪˈdʲelə ɐdˈna, prʲɪklɐˈdɨvəjə plɐˈtok k ɡlɐˈzam./`
+
+- `"chapter": "XV"`  
+  `IPA`: /ɡraf prɐˈvʲol ɡɐsˈtʲej muʐˈt͡ɕin f kɐbʲɪˈnʲet, prʲɪdlɐˈɡajə ɪm svɐˈju ɐˈxotnʲɪt͡skuju kɐˈlʲekt͡sɨju tuˈrʲet͡skʲɪx truˈbok./`
+
+## Chapters XVI–XX
+
+- `"chapter": "XVI"`  
+  `IPA`: /pɐlˈkovnʲɪk rɐskɐˈzal, ʂto mɐnʲɪˈfʲest ɐb ɐbjɪvˈlʲenʲɪjɪ vɐjˈnɨ uˈʐe ˈvɨʂəl f pʲɪtʲɪrˈburɡʲe ɪ ʂto ɪkzʲɪmplʲar, kɐˈtorɨj on sam ˈvʲidʲɪl, dɐˈstavlʲɪn ˈnɨnʲe kurʲɪˈrom ɡləvnəkɐmɐnˈdujuɕːɪmu./`
+
+- `"chapter": "XVII"`  
+  `IPA`: /ɡraf, rɐspusˈtʲif ˈkartɨ vʲɪˈjerəm, s truˈdom udʲɪrˈʐɨvəlsʲə ɐt prʲɪˈvɨt͡ɕkʲɪ pɐslʲɪɐbʲɪˈdʲenːəvə sna ɪ fsʲɪˈmu smʲɪˈjalsʲə./`
+
+- `"chapter": "XVIII"`  
+  `IPA`: /f to ˈvrʲemʲə kak u rɐsˈto.vɨx tɐnt͡sɐˈvalʲɪ f zaˈlʲe ʂɨsˈtoj ɐnˈɡlʲes pɐt zvuˈkʲi ɐt uˈstaləstʲɪ fəlʲʂɨˈvʲifʂɨx muzɨˈkantəf, ɪ uˈstalɨjə ɐfʲɪt͡sɨˈantɨ ɪ pɐvɐˈra ɡɐˈtovʲɪlʲɪ ˈuʐɨn, s ɡrɐfəm bʲɪzuˈxovɨm ˈsdʲeləlsʲə ʂɨsˈtoj uˈdar./`
+
+- `"chapter": "XIX"`  
+  `IPA`: /f to ˈvrʲemʲə kak tɐˈkʲijə rɐzɡɐˈvorɨ prɐɪsxɐˈdʲilʲɪ f prʲɪˈjomnaj ɪ f knʲɪˈʐnʲinoj ˈkomnətəx, kɐˈrʲetə s pʲɪˈerəm, zɐ kɐˈtorɨm bɨlə pɐˈslanə, ɪ s ˈanːəj mʲɪˈxajləvnəj, kɐˈtorəjə nɐʂˈla ˈnuʐnɨm ˈjexətʲ s nʲim, vjɪˈʐːalə vɐ dvor ɡrɐfə bʲɪzuˈxovə./`
+
+- `"chapter": "XX"`  
+  `IPA`: /t͡ɕastʲ ˈkomnətɨ zɐ kɐˈlonːəmʲɪ, ɡdʲe s ɐdˈnoj stɐrɐˈnɨ stɐˈjala vɨˈsokəjə ˈkrasnəvə ˈdʲerʲɪvə krɐˈvatʲ, pɐt ʂɨlˈkovɨmʲɪ zɐnɐˈvʲesəmʲɪ, ɐ s druˈɡoj ɐɡˈromnɨj kʲɪˈot s ɐbrɐˈzamʲɪ, bɨˈla ˈkrasnə ɪ ˈjarkə ɐsvʲɪˈɕːenə, kak bɨˈvajut ɐsvʲɪˈɕːenɨ t͡sʲerˈkvʲi vɐ ˈvrʲemʲə ˈvʲet͡ɕɪrnʲɪj ˈsluʐbɨ./`
+
+## Chapters XXI–XXV
+
+- `"chapter": "XXI"`  
+  `IPA`: /f prʲɪˈjomnaj nʲɪkɐˈvo uˈʐe nʲɪ ˈbɨlə, krɐˈmʲe knʲɪˈzʲa vɐˈsʲilʲɪjə ɪ ˈstarʂəj knʲɪʐˈnɨ, kɐˈtorɨjə, sʲɪˈdʲa pɐt pɐrtrʲɪˈtom jɪkɐtʲɪˈrʲinɨ, ɐ t͡ɕom-tə ɐʐɨvˈlʲonːə ɡəvɐˈrʲilʲɪ./`
+
+- `"chapter": "XXII"`  
+  `IPA`: /f ˈlɨsɨx ɡɐˈrax, ɪˈmʲenʲɪjɪ knʲɪˈzʲa nʲɪkɐˈlajə ɐnˈdrʲejɪvʲɪt͡ɕə bɐlˈkonskəvə, ɐʐɨˈdalʲɪ s ˈkaʐdɨm dnʲom prʲɪˈjezda mɐlɐˈdoɡə knʲɪˈzʲa ɐnˈdrʲejə s knʲɪˈɡʲinʲej; nə ɐʐɨˈdanʲɪje nʲɪ nɐruˈʂɨlə ˈstroj.nəvə pɐˈrʲatkə, pɐ kɐˈtorəmu ʂla ʐɨznʲ f ˈdomʲe ˈstarəvə knʲɪˈzʲa./`
+
+- `"chapter": "XXIII"`  
+  `IPA`: /f ˈetə ˈvrʲemʲə pɐdˈjexələ k ˈkrɨlʲt͡su kɐˈrʲetə ɪ ˈbrʲit͡ɕkə, ɪ ɪs kɐˈrʲetɨ ˈvɨʂəl knʲasʲ ɐnˈdrʲej, ˈvɨsədʲɪl svɐˈju ˈmalʲɪnʲkuju ʐɨˈnu ɪ prɐpusˈtʲil jɪˈjo vpʲɪrʲɪd./`
+
+- `"chapter": "XXIV"`  
+  `IPA`: /f nɐˈznat͡ɕɨnːɨj t͡ɕas, nɐpuˈdrʲɪnːɨj ɪ ˈvɨbrʲɪtɨj, knʲasʲ ˈvɨʂəl f stɐˈlovuju, ɡdʲe ɐʐɨˈdalə jɪˈvo nʲɪˈvestkə, knʲɪʐˈna marʲˈja, mɐdʲɪmwaˈzɛlʲ burˈjen ɪ ɐrxʲɪˈtʲektər knʲɪˈzʲa, pɐ ˈstranːəj prʲɪˈxotʲɪ jɪˈvo dɐpusˈkajəmɨj k stɐˈlu./`
+
+- `"chapter": "XXV"`  
+  `IPA`: /f mʲɪˈnutɨ ɐtˈjezda ɪ pʲɪrʲɪˈmʲenɨ ˈʐɨznʲɪ, nɐ lʲuˈdʲej, spɐˈsobnɨx ɐbdumɨˈvatʲ svɐˈjɪ pɐˈstupkʲɪ, ɐbɨknɐˈvʲenːə nɐˈxodʲɪt sʲɪˈrʲoznəjə nɐstrɐˈjenʲɪje ˈmɨslʲej./`
