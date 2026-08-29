@@ -2,7 +2,7 @@ import sys
 
 import yaml
 
-filename = "Volume_1_Part_1.yaml"
+filename = "chapter_ru_en_ipa_words.yaml"
 
 
 with open(filename, "r", encoding="utf-8") as f:
@@ -14,6 +14,8 @@ entries = [
         "chapter": item["chapter"],
         "ru": item["ru"],
         "en": item["en"],
+        "ipa": item["ipa"],
+        "words": item["words"],
     }
     for item in items
 ]
