@@ -123,7 +123,7 @@ impl eframe::App for SentenceApp {
 
                     for (index, token) in self.tokens.iter().enumerate() {
                         match token {
-                            WordToken::Word { ru, roman, en } => {
+                            WordToken::Word { ru, ipa, en } => {
                                 if !first {
                                     ui.add_space(6.0);
                                 }
@@ -146,7 +146,7 @@ impl eframe::App for SentenceApp {
                                 if self.expanded.contains(&index) {
                                     ui.add_space(6.0);
                                     ui.label(
-                                        egui::RichText::new(format!("({roman}: {en})"))
+                                        egui::RichText::new(format!("({ipa}: {en})"))
                                             .size(TEXT_SIZE)
                                             .italics(),
                                     );

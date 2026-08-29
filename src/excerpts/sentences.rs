@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
-const SENTENCES_FILE: &str = "Volume_1_Part_1.yaml";
-const SENTENCES_YAML: &str = include_str!("Volume_1_Part_1.yaml");
+const SENTENCES_FILE: &str = "chapter_id_ru_en_ipa_words.yaml";
+const SENTENCES_YAML: &str = include_str!("chapter_id_ru_en_ipa_words.yaml");
 const VOLUME_PARTS_YAML: &str = include_str!("voyna-i-mir.yaml");
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -9,7 +9,7 @@ pub struct Sentence {
     pub chapter: String,
     pub id: u32,
     pub ru: String,
-    pub roman: String,
+    pub ipa: String,
     pub en: String,
     pub words: String,
 }
@@ -22,8 +22,8 @@ struct VolumePart {
 }
 
 pub fn run(id: u32) -> Option<Sentence> {
-    let sentences: Vec<Sentence> =
-        serde_yaml_ng::from_str(SENTENCES_YAML).expect("failed to parse Volume_1_Part_1.yaml");
+    let sentences: Vec<Sentence> = serde_yaml_ng::from_str(SENTENCES_YAML)
+        .expect("failed to parse chapter_id_ru_en_ipa_words.yaml");
     sentences.into_iter().find(|sentence| sentence.id == id)
 }
 
@@ -35,7 +35,7 @@ impl Sentence {
         let vol_part = volume_parts
             .into_iter()
             .find(|part| part.file == SENTENCES_FILE)
-            .expect("voyna-i-mir.yaml should have an entry for Volume_1_Part_1.yaml")
+            .expect("voyna-i-mir.yaml should have an entry for chapter_id_ru_en_ipa_words.yaml")
             .vol_part;
 
         format!("{vol_part} {}", self.chapter)
@@ -44,21 +44,17 @@ impl Sentence {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum WordToken {
-    Word {
-        ru: String,
-        roman: String,
-        en: String,
-    },
+    Word { ru: String, ipa: String, en: String },
     Punct(String),
 }
 
 impl Sentence {
     /// Parses `words` (e.g. "Так (thus / so) говорила (spoke / said) ...")
     /// into a sequence of glossed words and the punctuation between them, in
-    /// the order they appear. Each word's romanization is taken from
-    /// `roman`, whose words appear in the same order as `words`.
+    /// the order they appear. Each word's IPA transcription is taken from
+    /// `ipa`, whose words appear in the same order as `words`.
     pub fn tokens(&self) -> Vec<WordToken> {
-        let mut romanized_words = Self::split_into_words(&self.roman).into_iter();
+        let mut ipa_words = Self::split_into_words(&self.ipa).into_iter();
 
         let mut tokens = Vec::new();
         let mut rest = self.words.as_str();
@@ -84,7 +80,7 @@ impl Sentence {
             if !word.is_empty() {
                 tokens.push(WordToken::Word {
                     ru: word.to_string(),
-                    roman: romanized_words.next().unwrap_or_default(),
+                    ipa: ipa_words.next().unwrap_or_default(),
                     en: gloss.to_string(),
                 });
             }
@@ -180,14 +176,14 @@ mod tests {
 
     #[test]
     fn run_finds_sentence_by_id() {
-        let sentence = run(1).expect("id 1 should exist in Volume_1_Part_1.yaml");
+        let sentence = run(1).expect("id 1 should exist in chapter_id_ru_en_ipa_words.yaml");
         assert_eq!(sentence.id, 1);
-        assert!(sentence.ru.starts_with("Тˈак говорˈила"));
+        assert!(sentence.ru.starts_with("Так говорила"));
     }
 
     #[test]
     fn title_combines_volume_part_and_chapter() {
-        let sentence = run(4).expect("id 4 should exist in Volume_1_Part_1.yaml");
+        let sentence = run(4).expect("id 4 should exist in chapter_id_ru_en_ipa_words.yaml");
         assert_eq!(sentence.chapter, "IV");
         assert_eq!(sentence.title(), "ТОМ ПЕРВЫЙ ЧАСТЬ ПЕРВАЯ IV");
     }
@@ -199,14 +195,14 @@ mod tests {
 
     #[test]
     fn tokens_parses_words_and_punctuation_in_order() {
-        let sentence = run(1).expect("id 1 should exist in Volume_1_Part_1.yaml");
+        let sentence = run(1).expect("id 1 should exist in chapter_id_ru_en_ipa_words.yaml");
         let tokens = sentence.tokens();
 
         assert_eq!(
             tokens[0],
             WordToken::Word {
                 ru: "Тˈак".to_string(),
-                roman: "Tak".to_string(),
+                ipa: "tɐk".to_string(),
                 en: "thus / so".to_string()
             }
         );
@@ -214,7 +210,7 @@ mod tests {
             tokens[1],
             WordToken::Word {
                 ru: "говорˈила".to_string(),
-                roman: "govorila".to_string(),
+                ipa: "ɡəvɐˈrʲilə".to_string(),
                 en: "spoke / said".to_string()
             }
         );
@@ -229,7 +225,7 @@ mod tests {
             tokens[sherer + 2],
             WordToken::Word {
                 ru: "фрˈейлина".to_string(),
-                roman: "freylina".to_string(),
+                ipa: "frʲɪˈlʲinə".to_string(),
                 en: "maid of honor".to_string()
             }
         );
@@ -237,7 +233,7 @@ mod tests {
 
     #[test]
     fn clauses_break_after_boundary_punctuation() {
-        let sentence = run(1).expect("id 1 should exist in Volume_1_Part_1.yaml");
+        let sentence = run(1).expect("id 1 should exist in chapter_id_ru_en_ipa_words.yaml");
         let clauses = sentence.clauses();
 
         // "Шерер (Scherer)," ends the first clause: its last token is the
