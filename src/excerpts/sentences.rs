@@ -201,7 +201,7 @@ mod tests {
         assert_eq!(
             tokens[0],
             WordToken::Word {
-                ru: "Тˈак".to_string(),
+                ru: "Так".to_string(),
                 ipa: "tɐk".to_string(),
                 en: "thus / so".to_string()
             }
@@ -209,7 +209,7 @@ mod tests {
         assert_eq!(
             tokens[1],
             WordToken::Word {
-                ru: "говорˈила".to_string(),
+                ru: "говорила".to_string(),
                 ipa: "ɡəvɐˈrʲilə".to_string(),
                 en: "spoke / said".to_string()
             }
@@ -218,13 +218,13 @@ mod tests {
         // The comma after "Шерер (Scherer)," is its own token between the two words.
         let sherer = tokens
             .iter()
-            .position(|t| matches!(t, WordToken::Word { ru, .. } if ru == "Шˈерер"))
-            .expect("Шˈерер should be present");
+            .position(|t| matches!(t, WordToken::Word { ru, .. } if ru == "Шерер"))
+            .expect("Шерер should be present");
         assert_eq!(tokens[sherer + 1], WordToken::Punct(",".to_string()));
         assert_eq!(
             tokens[sherer + 2],
             WordToken::Word {
-                ru: "фрˈейлина".to_string(),
+                ru: "фрейлина".to_string(),
                 ipa: "frʲɪˈlʲinə".to_string(),
                 en: "maid of honor".to_string()
             }
