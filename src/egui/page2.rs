@@ -118,7 +118,7 @@ pub fn run(sentence: Sentence) -> eframe::Result<()> {
     let title = sentence.title();
     let options = eframe::NativeOptions {
         viewport: egui::ViewportBuilder::default()
-            .with_inner_size([624.0, 264.0])
+            .with_inner_size([624.0, 500.0])
             .with_resizable(false),
         ..Default::default()
     };
