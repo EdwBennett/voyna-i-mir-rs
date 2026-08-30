@@ -25,6 +25,13 @@ const IPA2_TEXT_SIZE: f32 = 20.0;
 const IRINA: &str = "irina";
 const DENIS: &str = "denis";
 
+/// Silence held between one playthrough ending and the next automatic
+/// repeat - applies to `KeepLooping` and each `Alternate` loop-to-loop
+/// switch, giving time to process the clause before it repeats. Does not
+/// apply to `Stop` or an explicit `Switch` (I/D pressed mid-playback), which
+/// both take effect the instant the current playthrough ends.
+const LOOP_GAP_SECS: f32 = 4.0;
+
 /// What a looping clip should do once its current playthrough ends.
 #[derive(Clone, Copy, PartialEq, Eq)]
 enum Pending {
@@ -202,6 +209,10 @@ struct PlayingClip {
     /// loop can cheaply re-append it rather than re-decoding from disk.
     buffer: SamplesBuffer,
     pending: Pending,
+    /// Seconds of silence elapsed since this playthrough ended, while
+    /// waiting out [`LOOP_GAP_SECS`] before an automatic repeat. `None`
+    /// while still playing, or once playback hasn't finished yet.
+    silence_elapsed: Option<f32>,
 }
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -273,6 +284,7 @@ impl NativeAudio {
             voice,
             buffer,
             pending: Pending::KeepLooping,
+            silence_elapsed: None,
         });
     }
 
@@ -326,10 +338,12 @@ impl NativeAudio {
     /// Advances looping playback: once the current playthrough ends,
     /// applies whatever was queued via [`Self::select_voice`], [`Self::toggle`],
     /// or [`Self::alternate`] - looping the same voice again, stopping,
-    /// switching voice once, or alternating voice indefinitely. Call once
-    /// per frame.
-    fn update(&mut self) {
-        let Some(playing) = self.playing.take() else {
+    /// switching voice once, or alternating voice indefinitely. `KeepLooping`
+    /// and `Alternate` wait out [`LOOP_GAP_SECS`] of silence first; `Stop`
+    /// and `Switch` act immediately. Call once per frame with `dt` seconds
+    /// elapsed since the last call.
+    fn update(&mut self, dt: f32) {
+        let Some(mut playing) = self.playing.take() else {
             return;
         };
         if !playing.player.empty() {
@@ -337,9 +351,19 @@ impl NativeAudio {
             return;
         }
 
+        if matches!(playing.pending, Pending::KeepLooping | Pending::Alternate) {
+            let elapsed = playing.silence_elapsed.unwrap_or(0.0) + dt;
+            if elapsed < LOOP_GAP_SECS {
+                playing.silence_elapsed = Some(elapsed);
+                self.playing = Some(playing);
+                return;
+            }
+        }
+
         match playing.pending {
             Pending::KeepLooping => {
                 playing.player.append(playing.buffer.clone());
+                playing.silence_elapsed = None;
                 self.playing = Some(playing);
             }
             Pending::Stop => {}
@@ -385,6 +409,10 @@ struct PlayingClip {
     clause_num: usize,
     voice: &'static str,
     pending: Pending,
+    /// Seconds of silence elapsed since this playthrough ended, while
+    /// waiting out [`LOOP_GAP_SECS`] before an automatic repeat. `None`
+    /// while still playing, or once playback hasn't finished yet.
+    silence_elapsed: Option<f32>,
 }
 
 #[cfg(target_arch = "wasm32")]
@@ -419,6 +447,7 @@ impl WebAudio {
             clause_num,
             voice,
             pending: Pending::KeepLooping,
+            silence_elapsed: None,
         });
     }
 
@@ -472,10 +501,12 @@ impl WebAudio {
     /// Advances looping playback: once the current playthrough ends,
     /// applies whatever was queued via [`Self::select_voice`], [`Self::toggle`],
     /// or [`Self::alternate`] - looping the same voice again, stopping,
-    /// switching voice once, or alternating voice indefinitely. Call once
-    /// per frame.
-    fn update(&mut self) {
-        let Some(playing) = self.playing.take() else {
+    /// switching voice once, or alternating voice indefinitely. `KeepLooping`
+    /// and `Alternate` wait out [`LOOP_GAP_SECS`] of silence first; `Stop`
+    /// and `Switch` act immediately. Call once per frame with `dt` seconds
+    /// elapsed since the last call.
+    fn update(&mut self, dt: f32) {
+        let Some(mut playing) = self.playing.take() else {
             return;
         };
         if !playing.element.ended() {
@@ -483,10 +514,20 @@ impl WebAudio {
             return;
         }
 
+        if matches!(playing.pending, Pending::KeepLooping | Pending::Alternate) {
+            let elapsed = playing.silence_elapsed.unwrap_or(0.0) + dt;
+            if elapsed < LOOP_GAP_SECS {
+                playing.silence_elapsed = Some(elapsed);
+                self.playing = Some(playing);
+                return;
+            }
+        }
+
         match playing.pending {
             Pending::KeepLooping => {
                 playing.element.set_current_time(0.0);
                 let _ = playing.element.play();
+                playing.silence_elapsed = None;
                 self.playing = Some(playing);
             }
             Pending::Stop => {}
@@ -561,7 +602,8 @@ impl Page2App {
 
 impl eframe::App for Page2App {
     fn ui(&mut self, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
-        self.audio.update();
+        let dt = ui.ctx().input(|i| i.unstable_dt);
+        self.audio.update(dt);
 
         let (arrow_right, arrow_left, space, key_i, key_d, key_a, ctrl_w) = ui.input(|i| {
             (
