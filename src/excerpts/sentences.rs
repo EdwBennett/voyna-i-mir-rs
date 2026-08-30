@@ -10,6 +10,7 @@ pub struct Sentence {
     pub id: u32,
     pub ru: String,
     pub ipa: String,
+    pub ipa2: String,
     pub en: String,
     pub words: String,
 }

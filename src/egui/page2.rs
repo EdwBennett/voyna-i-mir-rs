@@ -15,6 +15,10 @@ use rodio::{Decoder, DeviceSinkBuilder, MixerDeviceSink, Player, Source, buffer:
 use web_sys::HtmlAudioElement;
 
 const TEXT_SIZE: f32 = 24.0;
+/// Size of the whole-sentence `ipa2` transcription shown below the clause
+/// list - smaller than `TEXT_SIZE` since it's a secondary annotation, not
+/// the primary text.
+const IPA2_TEXT_SIZE: f32 = 20.0;
 
 /// Voices a clause mp3 can be rendered in (see `src/mp3s.rs`), selected via
 /// the `I`/`D` keys.
@@ -159,6 +163,8 @@ pub fn run(sentence: Sentence) -> eframe::Result<()> {
 /// status line always showing what's selected/playing, for orientation.
 pub struct Page2App {
     clauses: Vec<Clause>,
+    /// Whole-sentence IPA transcription, shown below the clause list.
+    ipa2: String,
     /// Index into `clauses` of the currently selected clause, if any.
     selected: Option<usize>,
     /// The voice `Space` plays/toggles, and that `I`/`D` (or a heading tap
@@ -514,6 +520,7 @@ impl Page2App {
         Self {
             sentence_id: sentence.id,
             clauses: sentence.clauses(),
+            ipa2: sentence.ipa2.clone(),
             selected: None,
             selected_voice: IRINA,
             voice_mode: VoiceMode::Irina,
@@ -701,6 +708,14 @@ impl eframe::App for Page2App {
                     }
                 });
             });
+
+            ui.add_space(6.0);
+
+            ui.label(
+                egui::RichText::new(&self.ipa2)
+                    .size(IPA2_TEXT_SIZE)
+                    .italics(),
+            );
 
             ui.add_space(12.0);
 
