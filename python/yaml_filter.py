@@ -13,9 +13,6 @@ entries = [
     {
         "chapter": item["chapter"],
         "ru": item["ru"],
-        "en": item["en"],
-        "ipa": item["ipa"],
-        "words": item["words"],
     }
     for item in items
 ]
