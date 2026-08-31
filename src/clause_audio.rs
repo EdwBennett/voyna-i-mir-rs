@@ -16,7 +16,7 @@ pub const VOL_1_PART_1_SUBDIR: &str = "vol-1-part-1";
 /// Path to `sentence_id`'s `clause_num`-th clause (1-based) mp3 in `voice`,
 /// relative to `RU_MP3S_DIR` (native) or the deployed `ru-mp3s/` URL (wasm).
 pub fn clause_mp3_relative_path(sentence_id: u32, clause_num: usize, voice: &str) -> String {
-    format!("{VOL_1_PART_1_SUBDIR}/{sentence_id:03}_{clause_num:02}_{voice}.mp3")
+    format!("{VOL_1_PART_1_SUBDIR}/{sentence_id:03}/{clause_num:02}_{voice}.mp3")
 }
 
 #[cfg(test)]
@@ -27,11 +27,11 @@ mod tests {
     fn clause_mp3_relative_path_pads_id_and_clause_number() {
         assert_eq!(
             clause_mp3_relative_path(1, 2, "denis"),
-            "vol-1-part-1/001_02_denis.mp3"
+            "vol-1-part-1/001/02_denis.mp3"
         );
         assert_eq!(
             clause_mp3_relative_path(42, 11, "irina"),
-            "vol-1-part-1/042_11_irina.mp3"
+            "vol-1-part-1/042/11_irina.mp3"
         );
     }
 }

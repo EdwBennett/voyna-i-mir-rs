@@ -3,9 +3,9 @@
 //! into `ffmpeg` (PCM -> mp3). Mirrors the pipeline already proven out in
 //! `make_ru_mp3.rs` from a sibling project.
 //!
-//! Files land under `src/ru-mp3s/vol-1-part-1/`, named
-//! `{sentence_id:03}_{clause:02}_{voice}.mp3` (1-based clause numbering),
-//! and are always overwritten.
+//! Files land under `src/ru-mp3s/vol-1-part-1/{sentence_id:03}/`, named
+//! `{clause:02}_{voice}.mp3` (1-based clause numbering), and are always
+//! overwritten.
 //!
 //! Setup: `piper` and `ffmpeg` must be on `$PATH`, and each voice's .onnx +
 //! .onnx.json pair must exist under
@@ -134,7 +134,9 @@ pub fn run(id: u32) -> ExitCode {
         return ExitCode::FAILURE;
     };
 
-    let output_dir = Path::new(clause_audio::RU_MP3S_DIR).join(clause_audio::VOL_1_PART_1_SUBDIR);
+    let output_dir = Path::new(clause_audio::RU_MP3S_DIR)
+        .join(clause_audio::VOL_1_PART_1_SUBDIR)
+        .join(format!("{id:03}"));
     if let Err(err) = std::fs::create_dir_all(&output_dir) {
         eprintln!("failed to create {}: {err}", output_dir.display());
         return ExitCode::FAILURE;
