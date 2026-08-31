@@ -1,11 +1,16 @@
-//! `cargo run -- mp3s <id>`: renders one mp3 per clause per Russian `piper`
-//! voice (denis, irina) for a sentence, via `piper` (text -> raw PCM) piped
-//! into `ffmpeg` (PCM -> mp3). Mirrors the pipeline already proven out in
-//! `make_ru_mp3.rs` from a sibling project.
+//! `cargo run -- mp3s <id>` (or `mp3s all`): renders one mp3 per clause per
+//! Russian `piper` voice (denis, irina) for one sentence, or for every
+//! sentence in `chapter_id_ru_en_ipa_words.yaml`, via `piper` (text -> raw
+//! PCM) piped into `ffmpeg` (PCM -> mp3). Mirrors the pipeline already
+//! proven out in `make_ru_mp3.rs` from a sibling project.
 //!
 //! Files land under `src/ru-mp3s/vol-1-part-1/{sentence_id:03}/`, named
 //! `{clause:02}_{voice}.mp3` (1-based clause numbering), and are always
 //! overwritten.
+//!
+//! `mp3s all` fails fast: the first sentence that errors stops the whole
+//! run, leaving already-written sentences' files in place (rendering is
+//! deterministic and idempotent, so a rerun just redoes them too).
 //!
 //! Setup: `piper` and `ffmpeg` must be on `$PATH`, and each voice's .onnx +
 //! .onnx.json pair must exist under
@@ -123,68 +128,120 @@ fn encode_mp3(pcm: Vec<u8>, output_path: &Path) -> Result<(), String> {
     Ok(())
 }
 
-pub fn run(id: u32) -> ExitCode {
-    let Some(sentence) = sentences::run(id) else {
-        eprintln!("No sentence with id {id}");
-        return ExitCode::FAILURE;
-    };
+/// A voice's resolved, verified-to-exist model + config paths.
+struct VoicePaths {
+    voice: &'static str,
+    model: PathBuf,
+    config: PathBuf,
+}
 
-    let Some(home) = env::var_os("HOME").map(PathBuf::from) else {
-        eprintln!("HOME environment variable is not set");
-        return ExitCode::FAILURE;
+/// Resolve and verify the model + config paths for every voice in
+/// [`VOICES`], once, so a multi-sentence run doesn't re-check them per
+/// sentence.
+fn resolve_voices(home: &Path) -> Result<Vec<VoicePaths>, String> {
+    VOICES
+        .iter()
+        .map(|&voice| {
+            let (model, config) = voice_model_paths(home, voice)?;
+            for (field, path) in [("model", &model), ("model config", &config)] {
+                if !path.exists() {
+                    return Err(format!(
+                        "{voice} {field} not found at {} (see src/mp3s.rs setup docs)",
+                        path.display()
+                    ));
+                }
+            }
+            Ok(VoicePaths {
+                voice,
+                model,
+                config,
+            })
+        })
+        .collect()
+}
+
+/// Render every clause of sentence `id`, in every voice in `voices`, to
+/// `src/ru-mp3s/vol-1-part-1/{id:03}/`.
+fn render_sentence(id: u32, voices: &[VoicePaths]) -> Result<(), String> {
+    let Some(sentence) = sentences::run(id) else {
+        return Err(format!("No sentence with id {id}"));
     };
 
     let output_dir = Path::new(clause_audio::RU_MP3S_DIR)
         .join(clause_audio::VOL_1_PART_1_SUBDIR)
         .join(format!("{id:03}"));
-    if let Err(err) = std::fs::create_dir_all(&output_dir) {
-        eprintln!("failed to create {}: {err}", output_dir.display());
-        return ExitCode::FAILURE;
-    }
+    std::fs::create_dir_all(&output_dir)
+        .map_err(|err| format!("failed to create {}: {err}", output_dir.display()))?;
 
     let clauses = sentence.clauses();
 
-    for voice in VOICES {
-        let (model, config) = match voice_model_paths(&home, voice) {
-            Ok(paths) => paths,
-            Err(err) => {
-                eprintln!("{err}");
-                return ExitCode::FAILURE;
-            }
-        };
-        for (field, path) in [("model", &model), ("model config", &config)] {
-            if !path.exists() {
-                eprintln!(
-                    "{voice} {field} not found at {} (see src/mp3s.rs setup docs)",
-                    path.display()
-                );
-                return ExitCode::FAILURE;
-            }
-        }
-
+    for VoicePaths {
+        voice,
+        model,
+        config,
+    } in voices
+    {
         for (index, clause) in clauses.iter().enumerate() {
             let clause_num = index + 1;
             let text = clause.text();
 
             let mut pcm = silence(LEAD_IN_SECONDS);
-            match synthesize(&model, &config, &text) {
-                Ok(audio) => pcm.extend(audio),
-                Err(err) => {
-                    eprintln!(
-                        "failed to synthesize sentence {id} clause {clause_num} ({voice}): {err}"
-                    );
-                    return ExitCode::FAILURE;
-                }
-            }
+            let audio = synthesize(model, config, &text).map_err(|err| {
+                format!("failed to synthesize sentence {id} clause {clause_num} ({voice}): {err}")
+            })?;
+            pcm.extend(audio);
 
             let output_path = Path::new(clause_audio::RU_MP3S_DIR).join(
                 clause_audio::clause_mp3_relative_path(id, clause_num, voice),
             );
-            if let Err(err) = encode_mp3(pcm, &output_path) {
-                eprintln!("failed to encode {}: {err}", output_path.display());
-                return ExitCode::FAILURE;
-            }
+            encode_mp3(pcm, &output_path)
+                .map_err(|err| format!("failed to encode {}: {err}", output_path.display()))?;
             println!("wrote {}", output_path.display());
+        }
+    }
+
+    Ok(())
+}
+
+fn resolve_voices_from_env() -> Result<Vec<VoicePaths>, ExitCode> {
+    let Some(home) = env::var_os("HOME").map(PathBuf::from) else {
+        eprintln!("HOME environment variable is not set");
+        return Err(ExitCode::FAILURE);
+    };
+    resolve_voices(&home).map_err(|err| {
+        eprintln!("{err}");
+        ExitCode::FAILURE
+    })
+}
+
+pub fn run(id: u32) -> ExitCode {
+    let voices = match resolve_voices_from_env() {
+        Ok(voices) => voices,
+        Err(code) => return code,
+    };
+
+    match render_sentence(id, &voices) {
+        Ok(()) => ExitCode::SUCCESS,
+        Err(err) => {
+            eprintln!("{err}");
+            ExitCode::FAILURE
+        }
+    }
+}
+
+/// Renders every sentence in `chapter_id_ru_en_ipa_words.yaml`. Fails fast:
+/// the first sentence that errors stops the run and leaves later sentences
+/// unrendered.
+pub fn run_all() -> ExitCode {
+    let voices = match resolve_voices_from_env() {
+        Ok(voices) => voices,
+        Err(code) => return code,
+    };
+
+    for id in sentences::all_ids() {
+        if let Err(err) = render_sentence(id, &voices) {
+            eprintln!("{err}");
+            return ExitCode::FAILURE;
         }
     }
 
@@ -206,6 +263,11 @@ mod tests {
     #[test]
     fn voice_model_paths_rejects_unknown_voice() {
         assert!(voice_model_paths(Path::new("/home/test"), "amy").is_err());
+    }
+
+    #[test]
+    fn resolve_voices_rejects_missing_model_files() {
+        assert!(resolve_voices(Path::new("/home/test")).is_err());
     }
 
     #[test]

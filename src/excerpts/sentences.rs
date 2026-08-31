@@ -22,10 +22,20 @@ struct VolumePart {
     file: String,
 }
 
+fn all_sentences() -> Vec<Sentence> {
+    serde_yaml_ng::from_str(SENTENCES_YAML)
+        .expect("failed to parse chapter_id_ru_en_ipa_words.yaml")
+}
+
 pub fn run(id: u32) -> Option<Sentence> {
-    let sentences: Vec<Sentence> = serde_yaml_ng::from_str(SENTENCES_YAML)
-        .expect("failed to parse chapter_id_ru_en_ipa_words.yaml");
-    sentences.into_iter().find(|sentence| sentence.id == id)
+    all_sentences()
+        .into_iter()
+        .find(|sentence| sentence.id == id)
+}
+
+/// Every sentence id in `chapter_id_ru_en_ipa_words.yaml`, in file order.
+pub fn all_ids() -> Vec<u32> {
+    all_sentences().into_iter().map(|s| s.id).collect()
 }
 
 impl Sentence {
@@ -192,6 +202,13 @@ mod tests {
     #[test]
     fn run_returns_none_for_unknown_id() {
         assert!(run(999_999).is_none());
+    }
+
+    #[test]
+    fn all_ids_contains_every_sentence() {
+        let ids = all_ids();
+        assert!(ids.contains(&1));
+        assert_eq!(ids.len(), all_sentences().len());
     }
 
     #[test]

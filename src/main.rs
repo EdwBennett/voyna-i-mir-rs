@@ -12,7 +12,7 @@ use std::process::ExitCode;
 #[cfg(not(target_arch = "wasm32"))]
 fn usage(program: &str) -> String {
     format!(
-        "Usage: {program} sentence <id> | {program} display <id> | {program} page2 <id> | {program} mp3s <id>"
+        "Usage: {program} sentence <id> | {program} display <id> | {program} page2 <id> | {program} mp3s <id|all>"
     )
 }
 
@@ -24,6 +24,10 @@ fn main() -> ExitCode {
         eprintln!("{}", usage(&args[0]));
         return ExitCode::FAILURE;
     };
+
+    if mode == "mp3s" && id_arg == "all" {
+        return mp3s::run_all();
+    }
 
     let Ok(id) = id_arg.parse::<u32>() else {
         eprintln!("Invalid id: {id_arg}");
