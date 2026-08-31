@@ -169,6 +169,9 @@ pub fn run(sentence: Sentence) -> eframe::Result<()> {
 /// order of how often they change, sit the static instructions and then a
 /// status line always showing what's selected/playing, for orientation.
 pub struct Page2App {
+    /// Roman-numeral chapter (e.g. "IV"), shown at the start of the Voice
+    /// row.
+    chapter: String,
     clauses: Vec<Clause>,
     /// Whole-sentence IPA transcription, shown below the clause list.
     ipa2: String,
@@ -560,6 +563,7 @@ impl Page2App {
     pub fn new(sentence: Sentence) -> Self {
         Self {
             sentence_id: sentence.id,
+            chapter: sentence.chapter.clone(),
             clauses: sentence.clauses(),
             ipa2: sentence.ipa2.clone(),
             selected: None,
@@ -670,8 +674,12 @@ impl eframe::App for Page2App {
 
         egui::CentralPanel::default().show(ui, |ui| {
             let chooser_job = voice_chooser_job(ui, self.voice_mode);
-            let chooser_response =
-                ui.add(egui::Label::new(chooser_job).sense(egui::Sense::click()));
+            let chooser_response = ui
+                .horizontal(|ui| {
+                    ui.heading(&self.chapter);
+                    ui.add(egui::Label::new(chooser_job).sense(egui::Sense::click()))
+                })
+                .inner;
 
             if chooser_response.clicked() {
                 self.voice_mode = self.voice_mode.next();
