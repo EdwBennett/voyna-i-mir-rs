@@ -28,6 +28,25 @@ query parameter selects which page to show, and `id` selects the sentence:
 
 Change the `id` query parameter to view a different sentence.
 
+### Clause audio page controls
+
+- Click a clause to select it and start looping the selected voice;
+  clicking the selected clause again deselects it and stops playback.
+- Left/Right arrow keys select the previous/next clause, wrapping around
+  the ends of the sentence, without starting playback.
+- `I`/`D` select the Irina/Denis voice and start it looping the selected
+  (or first) clause.
+- `A` alternates the voice every loop.
+- Space toggles playback: starts it if idle, or lets the current loop
+  finish and then stops if playing.
+- Tapping the "Voice: Irina / Denis / Alternate" row at the top cycles
+  through the three voice choices - the touch equivalent of `I`/`D`/`A`.
+- Ctrl+Right/Ctrl+Left move to the next/previous chapter, wrapping around
+  the ends of the excerpt list. The voice selection carries over; clause
+  selection and playback reset. (Keyboard-only - there's no on-page
+  control for this.)
+- Ctrl+W closes the window (native only).
+
 ## Data
 
 Excerpt text and glosses live as YAML under [src/excerpts/](src/excerpts/),

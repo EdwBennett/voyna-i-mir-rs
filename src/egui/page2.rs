@@ -1,6 +1,7 @@
 use eframe::egui;
 
 use crate::clause_audio;
+use crate::excerpts::sentences;
 use crate::excerpts::sentences::{Clause, Sentence};
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -168,6 +169,11 @@ pub fn run(sentence: Sentence) -> eframe::Result<()> {
 /// tap or Space is what starts it. Below the clause list, in ascending
 /// order of how often they change, sit the static instructions and then a
 /// status line always showing what's selected/playing, for orientation.
+/// Ctrl+Right/Ctrl+Left move to the next/previous chapter, wrapping around
+/// the ends of the excerpt list - `selected_voice`/`voice_mode` carry over,
+/// but clause selection resets and playback stops, same as a plain arrow
+/// key press. There's no on-page control for this (see README.md); it's
+/// keyboard-only, like Ctrl+W.
 pub struct Page2App {
     /// Roman-numeral chapter (e.g. "IV"), shown at the start of the Voice
     /// row.
@@ -602,6 +608,30 @@ impl Page2App {
         }
         Some(before.map_or(len - 1, |i| (i + len - 1) % len))
     }
+
+    /// Moves to the next (`direction = 1`) or previous (`direction = -1`)
+    /// chapter, stepping through `sentences::all_ids()` and wrapping around
+    /// its ends. Stops playback and clears clause selection, exactly like a
+    /// fresh load of the new chapter would - but leaves `selected_voice`/
+    /// `voice_mode` untouched, so a voice preference survives the move.
+    fn go_to_chapter(&mut self, direction: isize) {
+        let ids = sentences::all_ids();
+        let Some(current_index) = ids.iter().position(|&id| id == self.sentence_id) else {
+            return;
+        };
+        let next_index =
+            (current_index as isize + direction).rem_euclid(ids.len() as isize) as usize;
+        let Some(sentence) = sentences::run(ids[next_index]) else {
+            return;
+        };
+
+        self.audio.stop();
+        self.selected = None;
+        self.sentence_id = sentence.id;
+        self.chapter = sentence.chapter.clone();
+        self.clauses = sentence.clauses();
+        self.ipa2 = sentence.ipa2.clone();
+    }
 }
 
 impl eframe::App for Page2App {
@@ -609,20 +639,31 @@ impl eframe::App for Page2App {
         let dt = ui.ctx().input(|i| i.unstable_dt);
         self.audio.update(dt);
 
-        let (arrow_right, arrow_left, space, key_i, key_d, key_a, ctrl_w) = ui.input(|i| {
-            (
-                i.key_pressed(egui::Key::ArrowRight),
-                i.key_pressed(egui::Key::ArrowLeft),
-                i.key_pressed(egui::Key::Space),
-                i.key_pressed(egui::Key::I),
-                i.key_pressed(egui::Key::D),
-                i.key_pressed(egui::Key::A),
-                i.modifiers.ctrl && i.key_pressed(egui::Key::W),
-            )
-        });
+        let (arrow_right, arrow_left, space, key_i, key_d, key_a, ctrl_w, ctrl_right, ctrl_left) =
+            ui.input(|i| {
+                (
+                    !i.modifiers.ctrl && i.key_pressed(egui::Key::ArrowRight),
+                    !i.modifiers.ctrl && i.key_pressed(egui::Key::ArrowLeft),
+                    i.key_pressed(egui::Key::Space),
+                    i.key_pressed(egui::Key::I),
+                    i.key_pressed(egui::Key::D),
+                    i.key_pressed(egui::Key::A),
+                    i.modifiers.ctrl && i.key_pressed(egui::Key::W),
+                    i.modifiers.ctrl && i.key_pressed(egui::Key::ArrowRight),
+                    i.modifiers.ctrl && i.key_pressed(egui::Key::ArrowLeft),
+                )
+            });
 
         if ctrl_w {
             ui.ctx().send_viewport_cmd(egui::ViewportCommand::Close);
+        }
+
+        if ctrl_right {
+            self.go_to_chapter(1);
+        }
+
+        if ctrl_left {
+            self.go_to_chapter(-1);
         }
 
         if arrow_right {
