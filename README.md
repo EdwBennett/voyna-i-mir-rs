@@ -44,8 +44,8 @@ Change the `id` query parameter to view a different sentence.
   the touch equivalent of `I`/`D`/`A`.
 - Ctrl+Right/Ctrl+Left move to the next/previous chapter, wrapping around
   the ends of the excerpt list. The voice selection carries over; clause
-  selection and playback reset. The `<`/`>` labels at the start of the top
-  row are the touch equivalent.
+  selection and playback reset. The `<<`/`>>` labels between the chapter
+  heading and the Voice text are the touch equivalent.
 - Ctrl+W closes the window (native only).
 
 ## Data

@@ -82,7 +82,8 @@ const INSTRUCTIONS: &str =
 /// a selected clause is: `Irina` alone lit for [`VoiceMode::Irina`], `Denis`
 /// alone for [`VoiceMode::Denis`], and both together for
 /// [`VoiceMode::Alternate`] (dropped as a separate word here to save width
-/// on the top row, which also now carries the `<`/`>` chapter-nav labels).
+/// on the top row, which also now carries the `<<`/`>>` chapter-nav
+/// labels).
 /// Kept as a single short line (unlike the fuller instructions text,
 /// relocated below the clause list) since this is the one control that has
 /// to stay visible above the fold on a phone screen.
@@ -172,13 +173,14 @@ pub fn run(sentence: Sentence) -> eframe::Result<()> {
 /// selected/playing, for orientation. Ctrl+Right/Ctrl+Left move to the
 /// next/previous chapter, wrapping around the ends of the excerpt list -
 /// `selected_voice`/`voice_mode` carry over, but clause selection resets
-/// and playback stops, same as a plain arrow key press. The `<`/`>` labels
-/// at the very start of the top row (ahead of the chapter heading) are the
-/// touch equivalent, calling the same `go_to_chapter` - clustered together
-/// there rather than pinned to the row's far edge, so no space is spent
-/// pushing them there and they don't compete with the Voice chooser for
-/// this row's limited width. Ctrl+W (native only) has no such touch
-/// equivalent - closing the page isn't something a touch build needs.
+/// and playback stops, same as a plain arrow key press. The `<<`/`>>`
+/// labels between the chapter heading and the Voice chooser are the touch
+/// equivalent, calling the same `go_to_chapter` - not pinned to the row's
+/// left edge, since Android's tap detection there proved unreliable
+/// (likely competing with the OS's own edge-swipe gesture), and doubled up
+/// as `<<`/`>>` rather than `<`/`>` for a wider, easier-to-hit target.
+/// Ctrl+W (native only) has no such touch equivalent - closing the page
+/// isn't something a touch build needs.
 pub struct Page2App {
     /// Roman-numeral chapter (e.g. "IV"), shown at the start of the Voice
     /// row.
@@ -722,17 +724,18 @@ impl eframe::App for Page2App {
             let chooser_job = voice_chooser_job(ui, self.voice_mode);
             let (prev_response, next_response, chooser_response) = ui
                 .horizontal(|ui| {
+                    ui.heading(&self.chapter);
+                    ui.add_space(12.0);
                     let prev = ui.add(
-                        egui::Label::new(egui::RichText::new("<").heading())
+                        egui::Label::new(egui::RichText::new("<<").heading())
                             .sense(egui::Sense::click()),
                     );
                     ui.add_space(8.0);
                     let next = ui.add(
-                        egui::Label::new(egui::RichText::new(">").heading())
+                        egui::Label::new(egui::RichText::new(">>").heading())
                             .sense(egui::Sense::click()),
                     );
                     ui.add_space(12.0);
-                    ui.heading(&self.chapter);
                     let chooser =
                         ui.add(egui::Label::new(chooser_job).sense(egui::Sense::click()));
                     (prev, next, chooser)
