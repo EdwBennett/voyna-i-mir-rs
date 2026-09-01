@@ -78,9 +78,12 @@ impl VoiceMode {
 const INSTRUCTIONS: &str =
     "Click a clause to play it; space toggles, i/d selects voice, a alternates.";
 
-/// Builds the "Voice: Irina / Denis / Alternate" chooser row, with
-/// whichever one matches `mode` highlighted the same way a selected clause
-/// is. Kept as a single short line (unlike the fuller instructions text,
+/// Builds the "Voice: Irina / Denis" chooser row, highlighted the same way
+/// a selected clause is: `Irina` alone lit for [`VoiceMode::Irina`], `Denis`
+/// alone for [`VoiceMode::Denis`], and both together for
+/// [`VoiceMode::Alternate`] (dropped as a separate word here to save width
+/// on the top row, which also now carries the `<`/`>` chapter-nav labels).
+/// Kept as a single short line (unlike the fuller instructions text,
 /// relocated below the clause list) since this is the one control that has
 /// to stay visible above the fold on a phone screen.
 fn voice_chooser_job(ui: &egui::Ui, mode: VoiceMode) -> egui::text::LayoutJob {
@@ -96,18 +99,14 @@ fn voice_chooser_job(ui: &egui::Ui, mode: VoiceMode) -> egui::text::LayoutJob {
     };
     job.append("Voice: ", 0.0, plain.clone());
 
-    for (index, (label, label_mode)) in [
-        ("Irina", VoiceMode::Irina),
-        ("Denis", VoiceMode::Denis),
-        ("Alternate", VoiceMode::Alternate),
-    ]
-    .into_iter()
-    .enumerate()
+    for (index, (label, label_mode)) in [("Irina", VoiceMode::Irina), ("Denis", VoiceMode::Denis)]
+        .into_iter()
+        .enumerate()
     {
         if index > 0 {
             job.append(" / ", 0.0, plain.clone());
         }
-        let format = if label_mode == mode {
+        let format = if label_mode == mode || mode == VoiceMode::Alternate {
             egui::TextFormat {
                 background: highlight,
                 ..plain.clone()
@@ -157,23 +156,29 @@ pub fn run(sentence: Sentence) -> eframe::Result<()> {
 /// playthrough finishes if something's already playing). Space toggles
 /// playback: starts it if idle (as a single voice, or alternating, per
 /// `voice_mode`), or lets the current playthrough finish and then stops if
-/// playing. Tapping the "Voice: Irina / Denis / Alternate" row at the top
-/// (the one control kept above the clause list, since there's little touch
-/// real estate to spare) is the touch equivalent of `I`/`D`/`A`
-/// (unreachable on touch, and double-tap is reserved by the OS for zoom):
-/// each tap cycles `voice_mode` Irina -> Denis -> alternate -> Irina, with
-/// the current choice highlighted. Unlike the keys, a tap there never
-/// starts playback on its own - choosing a voice is a passive choice, not
-/// a play button - it only steers already-playing audio (immediately if it
-/// matches, otherwise once the current playthrough ends); the next clause
-/// tap or Space is what starts it. Below the clause list, in ascending
-/// order of how often they change, sit the static instructions and then a
-/// status line always showing what's selected/playing, for orientation.
-/// Ctrl+Right/Ctrl+Left move to the next/previous chapter, wrapping around
-/// the ends of the excerpt list - `selected_voice`/`voice_mode` carry over,
-/// but clause selection resets and playback stops, same as a plain arrow
-/// key press. There's no on-page control for this (see README.md); it's
-/// keyboard-only, like Ctrl+W.
+/// playing. Tapping the "Voice: Irina / Denis" row at the top (the one
+/// control kept above the clause list, since there's little touch real
+/// estate to spare) is the touch equivalent of `I`/`D`/`A` (unreachable on
+/// touch, and double-tap is reserved by the OS for zoom): each tap cycles
+/// `voice_mode` Irina -> Denis -> alternate -> Irina, with `Irina`/`Denis`
+/// highlighted accordingly (both together for alternate, since there's no
+/// separate word for it - see `voice_chooser_job`). Unlike the keys, a tap
+/// there never starts playback on its own - choosing a voice is a passive
+/// choice, not a play button - it only steers already-playing audio
+/// (immediately if it matches, otherwise once the current playthrough
+/// ends); the next clause tap or Space is what starts it. Below the clause
+/// list, in ascending order of how often they change, sit the static
+/// instructions and then a status line always showing what's
+/// selected/playing, for orientation. Ctrl+Right/Ctrl+Left move to the
+/// next/previous chapter, wrapping around the ends of the excerpt list -
+/// `selected_voice`/`voice_mode` carry over, but clause selection resets
+/// and playback stops, same as a plain arrow key press. The `<`/`>` labels
+/// at the very start of the top row (ahead of the chapter heading) are the
+/// touch equivalent, calling the same `go_to_chapter` - clustered together
+/// there rather than pinned to the row's far edge, so no space is spent
+/// pushing them there and they don't compete with the Voice chooser for
+/// this row's limited width. Ctrl+W (native only) has no such touch
+/// equivalent - closing the page isn't something a touch build needs.
 pub struct Page2App {
     /// Roman-numeral chapter (e.g. "IV"), shown at the start of the Voice
     /// row.
@@ -715,12 +720,32 @@ impl eframe::App for Page2App {
 
         egui::CentralPanel::default().show(ui, |ui| {
             let chooser_job = voice_chooser_job(ui, self.voice_mode);
-            let chooser_response = ui
+            let (prev_response, next_response, chooser_response) = ui
                 .horizontal(|ui| {
+                    let prev = ui.add(
+                        egui::Label::new(egui::RichText::new("<").heading())
+                            .sense(egui::Sense::click()),
+                    );
+                    ui.add_space(8.0);
+                    let next = ui.add(
+                        egui::Label::new(egui::RichText::new(">").heading())
+                            .sense(egui::Sense::click()),
+                    );
+                    ui.add_space(12.0);
                     ui.heading(&self.chapter);
-                    ui.add(egui::Label::new(chooser_job).sense(egui::Sense::click()))
+                    let chooser =
+                        ui.add(egui::Label::new(chooser_job).sense(egui::Sense::click()));
+                    (prev, next, chooser)
                 })
                 .inner;
+
+            if prev_response.clicked() {
+                self.go_to_chapter(-1);
+            }
+
+            if next_response.clicked() {
+                self.go_to_chapter(1);
+            }
 
             if chooser_response.clicked() {
                 self.voice_mode = self.voice_mode.next();

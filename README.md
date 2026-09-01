@@ -39,12 +39,13 @@ Change the `id` query parameter to view a different sentence.
 - `A` alternates the voice every loop.
 - Space toggles playback: starts it if idle, or lets the current loop
   finish and then stops if playing.
-- Tapping the "Voice: Irina / Denis / Alternate" row at the top cycles
-  through the three voice choices - the touch equivalent of `I`/`D`/`A`.
+- Tapping the "Voice: Irina / Denis" row at the top cycles through the
+  three voice choices (Irina, Denis, or both highlighted for alternate) -
+  the touch equivalent of `I`/`D`/`A`.
 - Ctrl+Right/Ctrl+Left move to the next/previous chapter, wrapping around
   the ends of the excerpt list. The voice selection carries over; clause
-  selection and playback reset. (Keyboard-only - there's no on-page
-  control for this.)
+  selection and playback reset. The `<`/`>` labels at the start of the top
+  row are the touch equivalent.
 - Ctrl+W closes the window (native only).
 
 ## Data
